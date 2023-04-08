@@ -1,0 +1,5 @@
+0 = none
+1 = wave_hand
+2 = walk
+3 = up_down
+4 = turn

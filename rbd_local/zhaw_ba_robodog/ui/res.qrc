@@ -1,0 +1,10 @@
+<RCC>
+  <qresource prefix="newPrefix">
+    <file>hand_walk.jpg</file>
+    <file>hand_spin.jpg</file>
+    <file>hand_updown.jpg</file>
+  </qresource>
+  <qresource prefix="newPrefix">
+    <file>hand_wave.jpg</file>
+  </qresource>
+</RCC>
