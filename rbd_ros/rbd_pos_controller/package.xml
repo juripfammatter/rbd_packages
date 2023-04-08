@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>rbd_pos_controller</name>
+  <version>0.1.0</version>
+  <description>Position controller for the Unitree A1</description>
+  <maintainer email="pfammjur@students.zhaw.ch">Juri Pfammatter</maintainer>
+  <license>BSD</license>
+
+  <!-- buildtool_depend: dependencies of the build process -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- build_depend: dependencies only used in source files -->
+  <build_depend>boost</build_depend>
+  <!-- <build_depend>message_generation</build_depend> -->
+  <build_depend>roslint</build_depend>
+
+  <!-- depend: build, export, and execution dependency -->
+  <depend>eigen</depend>
+  <depend>roscpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>tf</depend>
+  <depend>qre_msgs</depend>
+  <depend>rbd_msgs</depend>
+
+  <!-- exec depends -->
+  <exec_depend>message_runtime</exec_depend>
+</package>

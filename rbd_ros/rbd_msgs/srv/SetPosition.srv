@@ -1,0 +1,7 @@
+#request
+geometry_msgs/Pose goal
+---
+#response
+string message
+bool success
+float64 distance

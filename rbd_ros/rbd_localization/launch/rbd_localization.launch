@@ -1,0 +1,25 @@
+<launch>
+  <arg name="enable_zed" default="false"/>
+
+  <!-- Launch ROS Package Template Node -->
+  <node pkg="rbd_localization" type="rbd_localization" name="rbd_localization" output="screen">
+    <rosparam command="load" file="$(find rbd_localization)/config/default.yaml" />
+  </node>
+
+  <!-- start ZED node if enable_zed = true -->
+  <group if="$(arg enable_zed)">
+    <include file="$(find zed_wrapper)/launch/zed2.launch"/>
+  </group>
+
+
+  <!-- start EKF Localization -->
+  <!-- <node name="ekf_localization" pkg="robot_localization" type="ekf_localization_node">
+		<rosparam command="load" file="$(find rbd_localization)/config/localization.yaml" />
+
+     <!--  Placeholder for output topic remapping
+    <remap from="odometry/filtered" to=""/>
+    <remap from="accel/filtered" to=""/>
+    -->
+	</node> -->
+
+</launch>

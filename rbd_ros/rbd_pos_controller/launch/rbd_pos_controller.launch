@@ -1,0 +1,8 @@
+<launch>
+
+  <!-- Launch ROS Package Template Node -->
+  <node pkg="rbd_pos_controller" type="rbd_pos_controller" name="rbd_pos_controller" output="screen">
+    <rosparam command="load" file="$(find rbd_pos_controller)/config/default.yaml" />
+  </node>
+
+</launch>

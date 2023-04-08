@@ -1,0 +1,5 @@
+state_subscriber_topic: /state
+imu_zed_subscriber_topic: /zed2/zed_node/imu/data
+position_publisher_topic: /actual_position
+imu_qre_publisher_topic: /imu_qre_filtered
+imu_zed_publisher_topic: /imu_zed_filtered

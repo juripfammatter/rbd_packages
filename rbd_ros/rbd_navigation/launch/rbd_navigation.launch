@@ -1,0 +1,8 @@
+<launch>
+
+  <!-- Launch ROS Package Template Node -->
+  <node pkg="rbd_navigation" type="rbd_navigation" name="rbd_navigation" output="screen">
+    <rosparam command="load" file="$(find rbd_navigation)/config/default.yaml" />
+  </node>
+
+</launch>

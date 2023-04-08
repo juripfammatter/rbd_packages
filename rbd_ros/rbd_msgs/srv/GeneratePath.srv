@@ -1,0 +1,6 @@
+#request
+string command
+---
+#response
+geometry_msgs/Pose[] poses
+int32 nr_of_poses
