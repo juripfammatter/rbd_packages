@@ -79,6 +79,7 @@ class Gestrec():
 
     def __run_gestrec__(self):
         client= roslibpy.Ros(host='localhost', port=9090)
+        #client= roslibpy.Ros(host='192.168.123.137', port=9090)
         client.run()
         talker= roslibpy.Topic(client, '/chatter', 'std_msgs/String')
         self._model_active.value = True

@@ -21,6 +21,8 @@ RbdController::RbdController(ros::NodeHandle& nodeHandle)
   navigationClient_ = nodeHandle_.serviceClient<rbd_msgs::GeneratePath>(path_generation_service);
   executionClient_ = nodeHandle_.serviceClient<rbd_msgs::SetPosition>(set_postion_service);
   modeClient_ = nodeHandle_.serviceClient<qre_msgs::RbdMode>(set_mode_service);
+  bodyPoseClient_ = nodeHandle_.serviceClient<qre_msgs::SetBodyPose>(body_pose_service);
+  gestureClient_ = nodeHandle_.serviceClient<rbd_msgs::GetLastGesture>(last_gesture_service);
 
   ROS_INFO("Successfully launched node.");
 }
@@ -36,7 +38,9 @@ bool RbdController::readParameters()
   if (!nodeHandle_.getParam("status_subscriber_topic", statusSubscriberTopic_) ||
       !nodeHandle_.getParam("path_generation_service", path_generation_service) ||
       !nodeHandle_.getParam("set_postion_service", set_postion_service) ||
-      !nodeHandle_.getParam("set_mode_service", set_mode_service)) return false;
+      !nodeHandle_.getParam("set_mode_service", set_mode_service) ||
+      !nodeHandle_.getParam("body_pose_service", body_pose_service) ||
+      !nodeHandle_.getParam("last_gesture_service", last_gesture_service)) return false;
   return true;
 }
 
@@ -50,7 +54,38 @@ void RbdController::statusCallback(const std_msgs::String& message)
   if (gesture_needed){
     //call gesture Service
     //TBD command based on gestrec
-    command = "wiggle";
+    //command = "wiggle";
+
+    while(execution_status == "em_stop");
+  
+    // set pose down
+    pose_srv.request.request.roll =   0.0*k_roll;
+    pose_srv.request.request.pitch =  0.2*k_pitch;
+    pose_srv.request.request.pitch =  0.0*k_yaw;
+    if (!bodyPoseClient_.call(pose_srv))
+    {
+      ROS_ERROR("Failed to call service set_body_pose");
+    }
+
+    // get gesture (blocking until new gesture received!)
+    if (!gestureClient_.call(gesture_srv))
+    {
+      ROS_ERROR("Failed to call service set_body_pose");
+    } else {
+      command = gesture_srv.response.last_gesture;
+      ROS_INFO_STREAM("received gesture: " << command);
+    }
+
+    while(execution_status == "em_stop");
+
+    //set pose zero 
+    pose_srv.request.request.roll =   0.0*k_roll;
+    pose_srv.request.request.pitch =  0.0*k_pitch;
+    pose_srv.request.request.pitch =  0.0*k_yaw;
+    if (!bodyPoseClient_.call(pose_srv))
+    {
+      ROS_ERROR("Failed to call service set_body_pose");
+    }
 
     gesture_needed = false;
     path_needed = true;
@@ -70,16 +105,17 @@ void RbdController::statusCallback(const std_msgs::String& message)
       ROS_INFO_STREAM("Successfully generated path with "<< nr_of_poses<<" poses");
 
     } else {
-      ROS_ERROR("Failed to call service generate_path");
+      ROS_ERROR("Failed to call service generate_path or mismatching command");
+      gesture_needed = true;
     }
 
     path_needed = false;
   }
 
   /* Execution*/
-  std::string execution_status = message.data;
+  execution_status = message.data;
 
-  if(execution_status != "em_stop"){
+  if((execution_status != "em_stop") && (!gesture_needed) && (!path_needed)){
     if(execution_status == "idle"){
 
       //dequeue Pose and remove

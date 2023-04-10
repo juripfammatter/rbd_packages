@@ -7,6 +7,8 @@
 #include <rbd_msgs/GeneratePath.h>
 #include <rbd_msgs/SetPosition.h>
 #include <qre_msgs/RbdMode.h>
+#include <qre_msgs/SetBodyPose.h>
+#include <rbd_msgs/GetLastGesture.h>
 
 namespace rbd_controller {
 
@@ -57,20 +59,29 @@ class RbdController
 
   //! ROS topic and service  names from parameter server.
   std::string statusSubscriberTopic_;
+
   std::string path_generation_service;
   std::string set_postion_service;
   std::string set_mode_service;
+  std::string body_pose_service;
+  std::string last_gesture_service;
 
-  //! ROS service server.
-  // ros::ServiceServer serviceServer_;
+  //! ROS service clients
   ros::ServiceClient navigationClient_;
   ros::ServiceClient executionClient_;
   ros::ServiceClient modeClient_;
+  ros::ServiceClient bodyPoseClient_;
+  ros::ServiceClient gestureClient_;
 
+  //! ROS service messages
   rbd_msgs::GeneratePath navigation_srv;
   rbd_msgs::SetPosition execution_srv;
+  rbd_msgs::GetLastGesture gesture_srv;
   qre_msgs::RbdMode mode_srv;
+  qre_msgs::SetBodyPose pose_srv;
+  
 
+  // global variables
   std::vector<geometry_msgs::Pose> poses;
   geometry_msgs::Pose current_pose;
   int32_t nr_of_poses;
@@ -78,7 +89,11 @@ class RbdController
   bool gesture_needed = true;
   bool path_needed = false;
 
+  std::string execution_status;
   std::string command;
+
+  // gains for rpy (-1,1)
+  double k_roll = 2.865, k_pitch = 2.865, k_yaw=2.046;
 
 };
 
