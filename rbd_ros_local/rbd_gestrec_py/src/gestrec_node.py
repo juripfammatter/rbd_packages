@@ -30,6 +30,12 @@ class gestrec():
     ### hand out last gesture using a service
     def handle_get_last_gesture(self, req):
         print("Returning [%s]"%(self.last_gesture))
+
+        # wait for gesture
+        self.last_gesture = "none"
+        while(self.last_gesture == "none"):
+            print("waiting for gesture")
+
         return getLastGestureResponse(self.last_gesture)
 
     def get_last_gesture_server(self):

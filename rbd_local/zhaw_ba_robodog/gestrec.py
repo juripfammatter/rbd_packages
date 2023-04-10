@@ -40,8 +40,8 @@ class Gestrec():
 
         # model
         self.model_min_confidence = 0.9
-        self.model_path = './model/logmod.pkl'
-        self.model_labels_path = './data/labels.txt'
+        self.model_path = '/home/juri/git/rbd_packages/rbd_local/zhaw_ba_robodog/model/logmod.pkl'
+        self.model_labels_path = '/home/juri/git/rbd_packages/rbd_local/zhaw_ba_robodog/data/labels.txt'
         self._model_active = Value(ctypes.c_bool, False)
 
         # development mode
