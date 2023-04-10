@@ -89,7 +89,7 @@ class RbdController
   bool gesture_needed = true;
   bool path_needed = false;
 
-  std::string execution_status;
+  std::string execution_status = "em_stop";
   std::string command;
 
   // gains for rpy (-1,1)

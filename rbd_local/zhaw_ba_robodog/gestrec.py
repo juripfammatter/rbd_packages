@@ -50,8 +50,8 @@ class Gestrec():
 
         # openCV
         self.cv_cap_flip = True
-        self.cv_cap_source = 0  # 0 == default device
-        #self.cv_cap_source = 'http://192.168.123.12:8080/?action=stream'  # 0 == default device
+        # self.cv_cap_source = 0  # 0 == default device
+        self.cv_cap_source = 'http://192.168.123.12:8080/?action=stream'  # 0 == default device
 
         # processes
         self._cap_proc = None
@@ -78,8 +78,8 @@ class Gestrec():
         return proc
 
     def __run_gestrec__(self):
-        client= roslibpy.Ros(host='localhost', port=9090)
-        #client= roslibpy.Ros(host='192.168.123.137', port=9090)
+        #client= roslibpy.Ros(host='localhost', port=9090)
+        client= roslibpy.Ros(host='0.0.0.0', port=9090)
         client.run()
         talker= roslibpy.Topic(client, '/chatter', 'std_msgs/String')
         self._model_active.value = True
