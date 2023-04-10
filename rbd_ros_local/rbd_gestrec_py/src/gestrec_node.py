@@ -5,7 +5,8 @@
 import rospy
 from std_msgs.msg import String
 #from __future__ import print_function
-from rbd_gestrec_py.srv import getLastGesture, getLastGestureResponse
+#from rbd_gestrec_py.srv import getLastGesture, getLastGestureResponse
+from rbd_msgs.srv import GetLastGesture, GetLastGestureResponse
 
 
 ### classes
@@ -36,11 +37,11 @@ class gestrec():
         while(self.last_gesture == "none"):
             print("waiting for gesture")
 
-        return getLastGestureResponse(self.last_gesture)
+        return GetLastGestureResponse(self.last_gesture)
 
     def get_last_gesture_server(self):
         print("Enter get_last_gesture_server()")
-        s = rospy.Service('get_last_gesture', getLastGesture, self.handle_get_last_gesture)
+        s = rospy.Service('get_last_gesture', GetLastGesture, self.handle_get_last_gesture)
         print("Ready to return last gesture.")
 
 
