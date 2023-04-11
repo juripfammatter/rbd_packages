@@ -35,7 +35,7 @@ class gestrec():
         # wait for gesture
         self.last_gesture = "none"
         while(self.last_gesture == "none"):
-            print("waiting for gesture")
+            x = 0
 
         return GetLastGestureResponse(self.last_gesture)
 
