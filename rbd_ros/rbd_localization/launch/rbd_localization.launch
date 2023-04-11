@@ -13,13 +13,14 @@
 
 
   <!-- start EKF Localization -->
-  <!-- <node name="ekf_localization" pkg="robot_localization" type="ekf_localization_node">
+  <node name="ekf_localization" pkg="robot_localization" type="ekf_localization_node">
 		<rosparam command="load" file="$(find rbd_localization)/config/localization.yaml" />
 
      <!--  Placeholder for output topic remapping
     <remap from="odometry/filtered" to=""/>
     <remap from="accel/filtered" to=""/>
-    -->
-	</node> -->
+     -->
+     
+	</node>
 
 </launch>

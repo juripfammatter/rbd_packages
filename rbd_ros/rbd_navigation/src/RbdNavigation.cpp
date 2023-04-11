@@ -81,6 +81,20 @@ void RbdNavigation::initChoreography(void){
   wiggle_poses.push_back(wiggle_left_pose);
   wiggle_poses.push_back(wiggle_right_pose);
   wiggle_poses.push_back(zero_pose);
+
+  /* Walk */
+  walk_poses.push_back(zero_pose);
+
+  /* Spin */
+  spin_poses.push_back(zero_pose);
+
+  /* Lie Down */
+  lie_down_poses.push_back(zero_pose);
+
+  /* Sit */
+  sit_poses.push_back(zero_pose);
+
+
 }
 
 // void RbdNavigation::topicCallback(const sensor_msgs::Temperature& message)
@@ -96,6 +110,26 @@ bool RbdNavigation::serviceCallback(rbd_msgs::GeneratePath::Request& request,
   if(request.command == "wiggle"){
     response.poses = wiggle_poses;
     response.nr_of_poses = 8;
+    return true;
+
+  } else if(request.command == "walk"){
+    response.poses = walk_poses;
+    response.nr_of_poses = 1;
+    return true;
+
+  } else if(request.command == "spin"){
+    response.poses = spin_poses;
+    response.nr_of_poses = 1;
+    return true;
+
+  }else if(request.command == "lie_down"){
+    response.poses = lie_down_poses;
+    response.nr_of_poses = 1;
+    return true;
+    
+  }else if(request.command == "sit"){
+    response.poses = sit_poses;
+    response.nr_of_poses = 1;
     return true;
   }
     return false;

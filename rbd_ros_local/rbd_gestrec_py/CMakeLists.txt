@@ -5,6 +5,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   message_generation
   std_msgs
+  rbd_msgs
 )
 
 catkin_python_setup()
@@ -25,6 +26,7 @@ catkin_package(
    CATKIN_DEPENDS 
      rospy
      std_msgs
+     rbd_msgs
      message_runtime 
 
 #  DEPENDS system_lib

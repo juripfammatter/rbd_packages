@@ -1,0 +1,26 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/opt/ros/melodic/include",
+                "/usr/include/eigen3",
+                "${workspaceFolder}/rbd_ros/rbd_pos_controller/include",
+                "${workspaceFolder}/rbd_ros/rbd_controller/include",
+                "${workspaceFolder}/rbd_ros/rbd_controller_template/include",
+                "${workspaceFolder}/rbd_ros/rbd_navigation/include",
+                "${workspaceFolder}/rbd_ros/rbd_localization/include",
+                "/home/juri/ROSWorkspace/BA/devel/.private/unitree_legged_msgs/include",
+                "/home/juri/ROSWorkspace/BA/devel/.private/rbd_msgs/include",
+                "/home/juri/ROSWorkspace/BA/devel/.private/qre_msgs/include"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c11",
+            "cppStandard": "gnu++14",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}
