@@ -72,7 +72,7 @@ void RbdController::statusCallback(const std_msgs::String& message)
       // get gesture (blocking until new gesture received!)
       if (!gestureClient_.call(gesture_srv))
       {
-        ROS_ERROR("Failed to call service set_body_pose");
+        ROS_ERROR("Failed to call service get_last_gesture");
       } else {
         command = gesture_srv.response.last_gesture;
         ROS_INFO_STREAM("received gesture: " << command);
