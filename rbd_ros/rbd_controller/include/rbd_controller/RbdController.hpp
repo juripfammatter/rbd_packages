@@ -63,14 +63,12 @@ class RbdController
   std::string path_generation_service;
   std::string set_postion_service;
   std::string set_mode_service;
-  std::string body_pose_service;
   std::string last_gesture_service;
 
   //! ROS service clients
   ros::ServiceClient navigationClient_;
   ros::ServiceClient executionClient_;
   ros::ServiceClient modeClient_;
-  ros::ServiceClient bodyPoseClient_;
   ros::ServiceClient gestureClient_;
 
   //! ROS service messages
@@ -78,11 +76,12 @@ class RbdController
   rbd_msgs::SetPosition execution_srv;
   rbd_msgs::GetLastGesture gesture_srv;
   qre_msgs::RbdMode mode_srv;
-  qre_msgs::SetBodyPose pose_srv;
   
 
   // global variables
   std::vector<geometry_msgs::Pose> poses;
+  geometry_msgs::Pose zero_pose;
+  geometry_msgs::Pose attentive_pose;
   geometry_msgs::Pose current_pose;
   int32_t nr_of_poses;
 

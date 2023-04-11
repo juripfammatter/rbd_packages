@@ -21,7 +21,6 @@ RbdController::RbdController(ros::NodeHandle& nodeHandle)
   navigationClient_ = nodeHandle_.serviceClient<rbd_msgs::GeneratePath>(path_generation_service);
   executionClient_ = nodeHandle_.serviceClient<rbd_msgs::SetPosition>(set_postion_service);
   modeClient_ = nodeHandle_.serviceClient<qre_msgs::RbdMode>(set_mode_service);
-  bodyPoseClient_ = nodeHandle_.serviceClient<qre_msgs::SetBodyPose>(body_pose_service);
   gestureClient_ = nodeHandle_.serviceClient<rbd_msgs::GetLastGesture>(last_gesture_service);
 
   ROS_INFO("Successfully launched node.");
@@ -39,7 +38,6 @@ bool RbdController::readParameters()
       !nodeHandle_.getParam("path_generation_service", path_generation_service) ||
       !nodeHandle_.getParam("set_postion_service", set_postion_service) ||
       !nodeHandle_.getParam("set_mode_service", set_mode_service) ||
-      !nodeHandle_.getParam("body_pose_service", body_pose_service) ||
       !nodeHandle_.getParam("last_gesture_service", last_gesture_service)) return false;
   return true;
 }
@@ -53,21 +51,22 @@ void RbdController::statusCallback(const std_msgs::String& message)
 
   /* Gesture */
   if (gesture_needed){
-    //call gesture Service
-    //TBD command based on gestrec
-    //command = "wiggle";
-
     if(execution_status == "em_stop"){
-      ROS_INFO_STREAM("em_stop enabled");
+      ROS_INFO_STREAM_ONCE("em_stop enabled");
     } else {
-      // set pose down
-      pose_srv.request.request.roll =   0.0*k_roll;
-      pose_srv.request.request.pitch =  0.2*k_pitch;
-      pose_srv.request.request.pitch =  0.0*k_yaw;
-      if (!bodyPoseClient_.call(pose_srv))
+
+      //call SetPosition service with attentive pose
+      attentive_pose.orientation.w = 0.9848078;
+      attentive_pose.orientation.y = -0.1736482;
+      execution_srv.request.goal =  attentive_pose;
+
+      if (executionClient_.call(execution_srv))
       {
-        ROS_ERROR("Failed to call service set_body_pose");
+        ROS_INFO_STREAM(""<< execution_srv.response.message);
+      } else {
+        ROS_ERROR("Failed to call service set_position");
       }
+
 
       // get gesture (blocking until new gesture received!)
       if (!gestureClient_.call(gesture_srv))
@@ -76,16 +75,20 @@ void RbdController::statusCallback(const std_msgs::String& message)
       } else {
         command = gesture_srv.response.last_gesture;
         ROS_INFO_STREAM("received gesture: " << command);
-      }
 
-      //set pose zero 
-      pose_srv.request.request.roll =   0.0*k_roll;
-      pose_srv.request.request.pitch =  0.0*k_pitch;
-      pose_srv.request.request.pitch =  0.0*k_yaw;
-      if (!bodyPoseClient_.call(pose_srv))
+
+        //call SetPosition service with zero pose
+        execution_srv.request.goal =  zero_pose;
+
+        if (executionClient_.call(execution_srv))
         {
-          ROS_ERROR("Failed to call service set_body_pose");
+          ROS_INFO_STREAM(""<< execution_srv.response.message);
+        } else {
+          ROS_ERROR("Failed to call service set_position");
         }
+
+      }
+      
       gesture_needed = false;
       path_needed = true;
       
