@@ -58,12 +58,12 @@ void RbdNavigation::initChoreography(void){
 
   try{
     tf::Quaternion q;
-    q.setRPY(0.0,0.2,0.0);
-    tf_wiggle_left_pose.setOrigin(tf::Vector3(0,0,0));
+    q.setRPY(0.0, 0.2, 0.0);
+    tf_wiggle_left_pose.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
     tf_wiggle_left_pose.setRotation(q);
 
-    q.setRPY(0.0,-0.2,0.0);
-    tf_wiggle_right_pose.setOrigin(tf::Vector3(0,0,0));
+    q.setRPY(0.0, -0.2, 0.0);
+    tf_wiggle_right_pose.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
     tf_wiggle_right_pose.setRotation(q);
 
     toMsgPose(tf_wiggle_left_pose, wiggle_left_pose);
@@ -73,6 +73,7 @@ void RbdNavigation::initChoreography(void){
     ros::Duration(1.0).sleep();
   }
 
+  // Fill array
   wiggle_poses.push_back(zero_pose);
   wiggle_poses.push_back(wiggle_left_pose);
   wiggle_poses.push_back(wiggle_right_pose);
@@ -81,18 +82,68 @@ void RbdNavigation::initChoreography(void){
   wiggle_poses.push_back(wiggle_left_pose);
   wiggle_poses.push_back(wiggle_right_pose);
   wiggle_poses.push_back(zero_pose);
+
+
+  /* Lie Down */
+  tf::Pose tf_lie_down;
+
+  try{
+    tf::Quaternion q;
+    q.setRPY(0.0, 0.0, 0.0);
+    tf_lie_down.setOrigin(tf::Vector3(0.0, 0.0, -1.0));
+    tf_lie_down.setRotation(q);
+
+    toMsgPose(tf_lie_down, lie_down_pose);
+
+  } catch (tf::TransformException &exception){
+    ROS_WARN("%s", exception.what());
+    ros::Duration(1.0).sleep();
+  }
+
+  // Fill array
+  lie_down_poses.push_back(zero_pose);
+  lie_down_poses.push_back(lie_down_pose);
+  lie_down_poses.push_back(zero_pose);
+
 
   /* Walk */
   walk_poses.push_back(zero_pose);
 
+
   /* Spin */
   spin_poses.push_back(zero_pose);
-
-  /* Lie Down */
-  lie_down_poses.push_back(zero_pose);
+  
 
   /* Sit */
-  sit_poses.push_back(zero_pose);
+  // tf::Pose tf_sit;
+  // tf::Pose tf_sit_rot;
+
+  // try{
+  //   tf::Quaternion q;
+  //   q.setRPY(0.0, -0.7, 0.0);
+  //   tf_sit.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
+  //   tf_sit.setRotation(q);
+
+  //   tf::Quaternion q;
+  //   q.setRPY(-0.2, -0.7, 0.0);
+  //   tf_sit_rot.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
+  //   tf_sit_rot.setRotation(q);
+
+  //   toMsgPose(tf_sit, sit_pose);
+  //   toMsgPose(tf_sit_rot, sit_rot_pose);
+
+
+  // } catch (tf::TransformException &exception){
+  //   ROS_WARN("%s", exception.what());
+  //   ros::Duration(1.0).sleep();
+  // }
+
+  // // Fill array
+  // sit_poses.push_back(zero_pose);
+  // sit_poses.push_back(sit_pose);
+  // sit_poses.push_back(sit_rot_pose);
+  // sit_poses.push_back(sit_pose);
+  // sit_poses.push_back(zero_pose);
 
 
 }
@@ -124,14 +175,15 @@ bool RbdNavigation::serviceCallback(rbd_msgs::GeneratePath::Request& request,
 
   }else if(request.command == "lie_down"){
     response.poses = lie_down_poses;
-    response.nr_of_poses = 1;
+    response.nr_of_poses = 3;
     return true;
     
-  }else if(request.command == "sit"){
-    response.poses = sit_poses;
-    response.nr_of_poses = 1;
-    return true;
   }
+  // else if(request.command == "sit"){
+  //   response.poses = sit_poses;
+  //   response.nr_of_poses = 5;
+  //   return true;
+  // }}
     return false;
 }
 

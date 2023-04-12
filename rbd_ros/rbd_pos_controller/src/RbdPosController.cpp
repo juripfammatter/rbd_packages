@@ -106,8 +106,8 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::Pose& pose)
   //ROS_INFO_STREAM("actual position [XYZ xyzq]"<<actual_position.x<<";"<<actual_position.y<<";"<<actual_position.z<<";"<<actual_orientation.x<<";"<<actual_orientation.y<<";"<<actual_orientation.z<<";"<<actual_orientation.w);
   //ROS_INFO_STREAM("goal position [XYZ RPY]"<<goal_position.x<<";"<<goal_position.y<<";"<<goal_position.z<<";"<<goal_roll<<";"<<goal_pitch<<";"<<goal_yaw);
   
-  //control loop
-  remaining_distance = sqrt(pow(actual_position.x-goal_position.x,2)+pow(actual_position.y-goal_position.y,2)+pow(actual_position.z-goal_position.z,2));
+  //control loop for 2D position controller
+  remaining_distance = sqrt(pow(actual_position.x-goal_position.x,2)+pow(actual_position.y-goal_position.y,2));
 
   while((remaining_distance > 0.1) & (!emergency_stop)){
 
@@ -129,11 +129,10 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::Pose& pose)
 
   if(!emergency_stop){
     //create request
-    // if((goal_roll != 0) || (goal_pitch != 0) || (goal_yaw != 0) || (goal_position.z != 0)){
     pose_srv.request.request.roll =  goal_roll*k_roll;
     pose_srv.request.request.pitch =  goal_pitch*k_pitch;
     pose_srv.request.request.yaw =  goal_yaw*k_yaw;
-    //pose_srv.request.request.body_height = goal_position.z; //-zero_height;
+    pose_srv.request.request.body_height = goal_position.z; // (-1, 1)
     //ROS_INFO_STREAM("Creating request with RPY:"<<pose_srv.request.request.roll<<";"<<pose_srv.request.request.pitch<<";"<<pose_srv.request.request.yaw);
 
     if (!poseClient_.call(pose_srv))

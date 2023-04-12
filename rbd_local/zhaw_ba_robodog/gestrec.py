@@ -164,7 +164,7 @@ class Gestrec():
                             #execute_command(_COMMANDS_DICT[idx])
                             land_q.clear()
                             talker.publish(roslibpy.Message({'data': _COMMANDS_DICT[idx]}))
-                            print('Sending gesture...')
+                            print('Sending gesture '+_COMMANDS_DICT[idx])
                             time.sleep(1)
 
                         # print text to image

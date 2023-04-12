@@ -136,6 +136,7 @@ void RbdController::statusCallback(const std_msgs::String& message)
       {
         // handle response
         ROS_INFO_STREAM(""<< execution_srv.response.message);
+        ros::WallDuration(1.0).sleep();
 
       } else {
         ROS_ERROR("Failed to call service set_position");
@@ -156,7 +157,7 @@ void RbdController::statusCallback(const std_msgs::String& message)
           ROS_ERROR("Failed to call service set_mode");
         }
 
-        ros::WallDuration(1.0).sleep(); 
+        ros::WallDuration(0.5).sleep(); 
 
         //set mode back to stand
         mode_srv.request.mode = 1;
