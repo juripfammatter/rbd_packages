@@ -1,0 +1,124 @@
+#include "rbd_controller_template/RbdControllerTemplate.hpp"
+
+// STD
+#include <string>
+
+// pcl
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl/point_types.h>
+#include <pcl/PCLPointCloud2.h>
+#include <pcl/conversions.h>
+#include <pcl_ros/transforms.h>
+
+// custom
+#include <vector>
+
+namespace rbd_controller_template {
+
+RbdControllerTemplate::RbdControllerTemplate(ros::NodeHandle& nodeHandle)
+    : nodeHandle_(nodeHandle)
+{
+  //*
+  if (!readParameters()) {
+    ROS_ERROR("Could not read parameters.");
+    ros::requestShutdown();
+  }
+  ROS_INFO("Subscribed to topic: %s", subscriberTopic_.c_str());
+  subscriber_ = nodeHandle_.subscribe(subscriberTopic_, 1,&RbdControllerTemplate::topicCallback, this);
+  //*/
+  //subscriber_ = nodeHandle_.subscribe("/ouster/points", 1,&RbdControllerTemplate::topicCallback, this);
+  serviceServer_ = nodeHandle_.advertiseService("get_average",&RbdControllerTemplate::serviceCallback, this);
+  ROS_INFO("Successfully launched node.");
+
+
+}
+
+RbdControllerTemplate::~RbdControllerTemplate()
+{
+}
+
+bool RbdControllerTemplate::readParameters()
+{
+  // get "subscriber_topic: /ouster/points" from .yaml file and save it into subscriberTopic_ variable
+  if (!nodeHandle_.getParam("subscriber_topic", subscriberTopic_)) return false;    
+  return true;
+}
+
+
+
+// functions to calculate critical angles from PointCloud2
+float getAngleFromCol(int col){
+  if((col>511) || (col<0)){   // Error handling
+    ROS_ERROR("Horizontal index out of bounds. Must be in interval [0, 511]");
+  }
+  
+  return 360*((float(col))/511);
+}
+
+std::vector<float> getCriticalAzimuths1(float* row){
+  const int length = 512;
+  std::vector<float> criticalAzimuths;
+  
+  for(int i = 0; i<length; i++){
+    if(row[i]<1.0){
+      criticalAzimuths.push_back(getAngleFromCol(i));
+    }
+  }
+  return criticalAzimuths;
+}
+
+void printCriticalAzimuths(std::vector<float> criticalAzimuths){
+  ROS_INFO("Number of Critical Angles: %lu", criticalAzimuths.size());
+  ROS_INFO("Critical Angles: (distance <1.0 m)");
+  for(uint16_t i=0; i<criticalAzimuths.size(); i++){
+    ROS_INFO("%f deg", criticalAzimuths[i]);
+  }
+  ROS_INFO("\n-------------------------------\n");
+}
+
+pcl::PointCloud<pcl::PointXYZ>::Ptr convertToPCL(const sensor_msgs::PointCloud2& inputPointCloud2){
+  pcl::PCLPointCloud2 pcl_pc2;
+  pcl_conversions::toPCL(inputPointCloud2,pcl_pc2);
+  pcl::PointCloud<pcl::PointXYZ>::Ptr temp_cloud(new pcl::PointCloud<pcl::PointXYZ>);
+  pcl::fromPCLPointCloud2(pcl_pc2,*temp_cloud);
+  return temp_cloud;
+}
+
+
+// main callback of this node
+void RbdControllerTemplate::topicCallback(const sensor_msgs::PointCloud2& inputPointCloud2)
+{
+  // convert PointCloud2& to pcl
+  pcl::PointCloud<pcl::PointXYZ>::Ptr temp_cloud = convertToPCL(inputPointCloud2);
+
+  // calculate squared range for each point and store it in 2D array
+  int n_rows = 32, n_cols = 512;
+  float squared_range[n_rows][n_cols];
+  for(int row = 0; row <n_rows; row++){
+    for(int col = 0; col<n_cols; col++){
+      int index_cloud = row*n_cols + col;
+
+      float x = temp_cloud->points[index_cloud].x, y = temp_cloud->points[index_cloud].y, z = temp_cloud->points[index_cloud].z;
+      squared_range[row][col] = x*x + y*y + z*z;
+    }
+  }
+
+  // get critical Azimuths for row in lidar scan
+  int rowToCheck = 0;
+  std::vector<float> criticalAzimuths = getCriticalAzimuths1(squared_range[rowToCheck]);
+
+  // print critical angles
+  printCriticalAzimuths(criticalAzimuths);
+  sleep(15);
+}
+
+
+bool RbdControllerTemplate::serviceCallback(std_srvs::Trigger::Request& request,
+                                         std_srvs::Trigger::Response& response)
+{
+  response.success = true;
+  response.message = "message";
+  return true;
+}
+
+} /* namespace */
