@@ -78,21 +78,21 @@ void RbdPosController::envelope(double &vx, double &vy){
 
 }
 
-void RbdPosController::updateGain(void)
-{
-  float dx = actual_position.x-goal_position.x;
-  float dy = actual_position.y-goal_position.y;
+// void RbdPosController::updateGain(void)
+// {
+//   float dx = actual_position.x-goal_position.x;
+//   float dy = actual_position.y-goal_position.y;
 
-  ctrl_vel_x = saturate(kp_x*dx, -0.5, 0.5);
-  ctrl_vel_y = saturate(kp_y*dy, -0.5, 0.5);
+//   ctrl_vel_x = saturate(kp_x*dx, -0.5, 0.5);
+//   ctrl_vel_y = saturate(kp_y*dy, -0.5, 0.5);
 
-  //envelope to minimize rotational speed when moving forward
-  envelope(ctrl_vel_x, ctrl_vel_y);
+//   //envelope to minimize rotational speed when moving forward
+//   envelope(ctrl_vel_x, ctrl_vel_y);
 
-  //qre_ros/hlm.cpp also does control
-}
+//   //qre_ros/hlm.cpp also does control
+// }
 
-float RbdPosController::quat2eul(const geometry_msgs::Pose& pose, std::vector<double> &rpy){
+void RbdPosController::quat2eul(const geometry_msgs::Pose& pose, std::vector<double> &rpy){
 
   tf::Quaternion tf_orientation;
   tf_orientation.setValue(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
@@ -109,83 +109,99 @@ float RbdPosController::quat2eul(const geometry_msgs::Pose& pose, std::vector<do
 
 void RbdPosController::actualPositionCallback(const geometry_msgs::Pose& pose)
 {
-  
-  // main Functions are implemented here
-  //update actual positions
-  geometry_msgs::Point z;
-  z.x = 0;
-  z.y = 0;
-  z.z = 0;
-  actual_position = z;//pose.position;
-  actual_orientation = pose.orientation; 
-  //ROS_INFO_STREAM("actual position [XYZ xyzq]"<<actual_position.x<<";"<<actual_position.y<<";"<<actual_position.z<<";"<<actual_orientation.x<<";"<<actual_orientation.y<<";"<<actual_orientation.z<<";"<<actual_orientation.w);
-  //ROS_INFO_STREAM("goal position [XYZ RPY]"<<goal_position.x<<";"<<goal_position.y<<";"<<goal_position.z<<";"<<goal_roll<<";"<<goal_pitch<<";"<<goal_yaw);
-  
-  /* Rotate to align to path*/
+  /* Get yaw angle of actual pose */
   std::vector<double> pose_rpy = std::vector<double> (3);
   quat2eul(pose,pose_rpy);
 
-  float delta_phi = goal_yaw-pose_rpy[2];
-  vel_message.angular.x = 0;
-  vel_message.angular.y = 0;
-  vel_message.angular.z = 0;
-  vel_message.linear.x = 0;
-  vel_message.linear.y = 0;
-  vel_message.linear.z = 0;
+  /* Calculate position error */
+  float e_x = goal_position.x-pose.position.x;
+  float e_y = goal_position.y- pose.position.y;
+  float rho = sqrt(e_x*e_x+e_y*e_y);
 
-  if((delta_phi >= 0.2) & (!emergency_stop)){
-    vel_message.angular.z = saturate(delta_phi*kp_angular, -0.5, 0.5);
-  }
+  /* Calculate helper angles (in radian) */
+  float alpha = atan2(e_y, e_x);                      // angle of trajectory
+  float gamma = alpha-pose_rpy[2];                    // angle for pre rotation and during linear movement
+  float delta = goal_yaw-pose_rpy[2];                 // angle for final rotation
+
+  /* Reset Velocity */
+  vel_message = zero_twist;
+
   
-  cmdVelPublisher_.publish(vel_message);
-
-
-
-  /* Linear movement controller*/
-  //control loop for 2D position controller
-  remaining_distance = sqrt(pow(actual_position.x-goal_position.x,2)+pow(actual_position.y-goal_position.y,2));
-
-  while((remaining_distance > 0.1) & (!emergency_stop)){
-
-    //Publish cmd_velocity
-    vel_message.linear.x = ctrl_vel_x;
-    vel_message.linear.y = ctrl_vel_y;
-
-    cmdVelPublisher_.publish(vel_message);
-    //ROS_INFO_STREAM("lin:" << vel_message.linear.x << "ang:" <<vel_message.angular.z);
-
-    status_message.data = "executing";
-    statusPublisher_.publish(status_message);
-	  
-  }
+  /*************************** State machine ****************************/
+  /* 1. Rotate to angle of trajectory 
+  *  2. Move to target
+  *  3. Rotate to goal (global yaw) angle
+  *  4. Set goal body pose
+  */
   
-  // TBD set orientation (rotate)
+  switch(emergency_stop){
+    case true: 
+        // Control loop
+        status_message.data = "running";
+        switch(control_state){
+          case PRE_ROTATION:
+            if(gamma >= 0.01){
+              vel_message.angular.z = saturate(gamma*kp_angular, -0.5, 0.5);
+            } else {
+              //control_state = LIN_MOVEMENT;
+              control_state = BODY_POSE;   // for testing (skips lin movement and post rotation)
+            }
+            break;
 
-  // set pody Pose
 
-  if(!emergency_stop){
-    //create request
-    pose_srv.request.request.roll =  goal_roll*k_roll;
-    pose_srv.request.request.pitch =  goal_pitch*k_pitch;
-    pose_srv.request.request.yaw =  goal_yaw*k_yaw;
-    pose_srv.request.request.body_height = goal_position.z; // (-1, 1)
-    //ROS_INFO_STREAM("Creating request with RPY:"<<pose_srv.request.request.roll<<";"<<pose_srv.request.request.pitch<<";"<<pose_srv.request.request.yaw);
+          case LIN_MOVEMENT:
+            if(rho >= 0.01){
+              // control loop
+              vel_message.linear.x = saturate(rho*kp_linear, -0.5, 0.5);
+              vel_message.linear.y = saturate(gamma*kp_angular_lin, -0.5, 0.5); //will be translated onto rotateSpeed by qre...
+            } else {
+              control_state = POST_ROTATION;
+            }
+            break;
 
-    if (!poseClient_.call(pose_srv))
-    {
-      ROS_ERROR("Failed to call service set_body_pose");
-    } else{
-      //ROS_INFO_STREAM("Service called successfully");
-    }
 
-    // }
-    ros::WallDuration(1.0).sleep();
-    status_message.data = "idle";
-    statusPublisher_.publish(status_message);
-  } else {
-    status_message.data = "em_stop";
-    statusPublisher_.publish(status_message);
+          case POST_ROTATION:
+            if(delta >= 0.01){
+              vel_message.angular.z = saturate(delta*kp_angular, -0.5, 0.5);
+            } else {
+              control_state = BODY_POSE;
+            }
+
+            break;
+
+
+          case BODY_POSE:
+            //create request (normed to [-1,1])
+            pose_srv.request.request.roll =  goal_roll*k_roll;
+            pose_srv.request.request.pitch =  goal_pitch*k_pitch;
+            //pose_srv.request.request.yaw =  goal_yaw*k_yaw;
+            pose_srv.request.request.body_height = goal_position.z;
+            //ROS_INFO_STREAM("Creating request with RPY:"<<pose_srv.request.request.roll<<";"<<pose_srv.request.request.pitch<<";"<<pose_srv.request.request.yaw);
+
+            if (!poseClient_.call(pose_srv))
+            {
+              ROS_ERROR("Failed to call service set_body_pose");
+            } else{
+              //ROS_INFO_STREAM("Service called successfully");
+            }
+
+            ros::WallDuration(1.0).sleep();
+            // set status to idle
+            status_message.data = "idle";
+            control_state = PRE_ROTATION;
+            break;
+
+        cmdVelPublisher_.publish(vel_message);
+        }
+      break;
+
+    case false:
+        // Emergency behaviour (vel reset done by emStopCallback)
+        status_message.data = "em_stop";
+        break;
   }
+
+  statusPublisher_.publish(status_message);
 }
 
 
@@ -228,7 +244,6 @@ bool RbdPosController::emStopCallback(std_srvs::SetBool::Request& request,
 
     //generate response
     response.message = "position set to Roll="+std::to_string(goal_roll)+" Pitch="+std::to_string(goal_pitch)+" Yaw="+std::to_string(goal_yaw);
-    //response.distance = remaining_distance;
     response.success = true;
     return 1;
   }                                        

@@ -41,7 +41,7 @@ class RbdPosController
   float saturate(double value, double lower_limit, double upper_limit);
   void updateGain(void);
   void envelope(double &vx, double &vy);
-  float quat2eul(const geometry_msgs::Pose& pose,  std::vector<double> &rpy);
+  void quat2eul(const geometry_msgs::Pose& pose,  std::vector<double> &rpy);
 
   /*!
    * ROS topic callback method.
@@ -83,8 +83,6 @@ class RbdPosController
   geometry_msgs::Twist vel_message;
   geometry_msgs::Twist zero_twist;
   geometry_msgs::Point goal_position;
-  geometry_msgs::Point actual_position;
-  geometry_msgs::Quaternion actual_orientation;
 
   double goal_roll = 0, goal_pitch = 0, goal_yaw = 0;
   double remaining_distance;
@@ -93,9 +91,20 @@ class RbdPosController
   
   double kp_x, kp_y;
   double kp_angular;
+  double kp_angular_lin;
+  double kp_linear;
   double k_roll = 2.865, k_pitch = 2.865, k_yaw=2.046;
   double zero_height = 0.41;
   double ctrl_vel_x, ctrl_vel_y;
+
+  typedef enum{
+      PRE_ROTATION,
+      LIN_MOVEMENT,
+      POST_ROTATION,
+      BODY_POSE
+  }control_state_t;
+  control_state_t control_state;
+
 };
 
 } /* namespace */
