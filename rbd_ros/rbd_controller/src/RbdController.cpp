@@ -57,7 +57,7 @@ void RbdController::statusCallback(const std_msgs::String& message)
   if(execution_status == "em_stop"){
     ROS_INFO_STREAM_ONCE("em_stop enabled");
 
-  } else if(execution_status == "idle"){
+  } else {
     switch(control_state){
       case WAITING_FOR_GESTURE:
           /* Attentive Pose*/

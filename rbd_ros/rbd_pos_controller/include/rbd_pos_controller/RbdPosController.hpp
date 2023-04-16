@@ -120,6 +120,7 @@ class RbdPosController
   double goal_roll = 0, goal_pitch = 0, goal_yaw = 0;
 
   bool emergency_stop = true;
+  bool pose_requested = false;
   
   double kp_x, kp_y;
   double kp_angular;
@@ -132,6 +133,7 @@ class RbdPosController
 
   /* Position control state for state machine */
   typedef enum{
+      WAIT_FOR_POSE,
       PRE_ROTATION,
       LIN_MOVEMENT,
       POST_ROTATION,

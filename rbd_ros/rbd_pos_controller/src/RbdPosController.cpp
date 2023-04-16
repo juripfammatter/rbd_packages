@@ -128,17 +128,27 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::Pose& pose)
 
   
   /*************************** State machine ****************************/
-  /* 1. Rotate to angle of trajectory 
-  *  2. Move to target
-  *  3. Rotate to goal (global yaw) angle
-  *  4. Set goal body pose
+  /* 1. Wait for pose request
+  *  2. Rotate to angle of trajectory 
+  *  3. Move to target
+  *  4. Rotate to goal (global yaw) angle
+  *  5. Set goal body pose
   */
   
   switch(emergency_stop){
     case false: 
         // Control loop
-        status_message.data = "running";
+        
         switch(pos_control_state){
+          case WAIT_FOR_POSE:
+            if(pose_requested){
+              status_message.data = "running";
+              pos_control_state = PRE_ROTATION;
+              pose_requested = false;
+            }
+            break;
+
+
           case PRE_ROTATION:
             if(gamma >= 0.01){
               vel_message.angular.z = saturate(gamma*kp_angular, -0.5, 0.5);
@@ -188,7 +198,7 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::Pose& pose)
             ros::WallDuration(1.0).sleep();
             // set status to idle
             status_message.data = "idle";
-            pos_control_state = PRE_ROTATION;
+            pos_control_state = WAIT_FOR_POSE;
             break;
 
         cmdVelPublisher_.publish(vel_message);
@@ -216,12 +226,12 @@ bool RbdPosController::emStopCallback(std_srvs::SetBool::Request& request,
 		cmdVelPublisher_.publish(stop_message);
 		response.message = "emergency flag set";
 
-    status_message.data = "em_stop";
-    statusPublisher_.publish(status_message);
+    // status_message.data = "em_stop";
+    // statusPublisher_.publish(status_message);
 	} else {
 		response.message = "emergency flag reset";
-    status_message.data = "idle";
-    statusPublisher_.publish(status_message);
+    // status_message.data = "idle";
+    // statusPublisher_.publish(status_message);
 	}
 
 	response.success = true;
@@ -231,7 +241,7 @@ bool RbdPosController::emStopCallback(std_srvs::SetBool::Request& request,
   bool RbdPosController::setPosCallback(rbd_msgs::SetPosition::Request& request,
                                         rbd_msgs::SetPosition::Response& response)
   {
-    // Extract position and RPY
+    /* Extract position and RPY */
     goal_position = request.goal.position;
 
     tf::Quaternion q(request.goal.orientation.x, request.goal.orientation.y, request.goal.orientation.z, request.goal.orientation.w);
@@ -242,9 +252,12 @@ bool RbdPosController::emStopCallback(std_srvs::SetBool::Request& request,
     if(isnan(goal_pitch)) goal_pitch = 0;
     if(isnan(goal_yaw)) goal_yaw = 0;
 
-    //generate response
+    /* generate response */
     response.message = "position set to Roll="+std::to_string(goal_roll)+" Pitch="+std::to_string(goal_pitch)+" Yaw="+std::to_string(goal_yaw);
     response.success = true;
+
+    /* flag for state machine to start control loop*/
+    pose_requested = true;
     return 1;
   }                                        
 
