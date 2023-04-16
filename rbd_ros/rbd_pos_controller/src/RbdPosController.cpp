@@ -135,7 +135,7 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::Pose& pose)
   */
   
   switch(emergency_stop){
-    case true: 
+    case false: 
         // Control loop
         status_message.data = "running";
         switch(pos_control_state){
@@ -195,7 +195,7 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::Pose& pose)
         }
       break;
 
-    case false:
+    case true:
         // Emergency behaviour (vel reset done by emStopCallback)
         status_message.data = "em_stop";
         break;
