@@ -41,6 +41,7 @@ class RbdPosController
   float saturate(double value, double lower_limit, double upper_limit);
   void updateGain(void);
   void envelope(double &vx, double &vy);
+  float quat2eul(const geometry_msgs::Pose& pose,  std::vector<double> &rpy);
 
   /*!
    * ROS topic callback method.
@@ -91,6 +92,7 @@ class RbdPosController
   bool emergency_stop = true;
   
   double kp_x, kp_y;
+  double kp_angular;
   double k_roll = 2.865, k_pitch = 2.865, k_yaw=2.046;
   double zero_height = 0.41;
   double ctrl_vel_x, ctrl_vel_y;

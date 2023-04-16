@@ -45,7 +45,8 @@ bool RbdPosController::readParameters()
       !nodeHandle_.getParam("status_publisher_topic", status_pub_topic) ||
       !nodeHandle_.getParam("body_pose_service", body_pose_service)  ||
       !nodeHandle_.getParam("emergency_stop_service", emergency_stop_service)  ||
-      !nodeHandle_.getParam("set_position_service", set_position_service) )
+      !nodeHandle_.getParam("set_position_service", set_position_service)  ||
+      !nodeHandle_.getParam("kp_angular", kp_angular) )
   {
     return false;
   } 
@@ -91,6 +92,20 @@ void RbdPosController::updateGain(void)
   //qre_ros/hlm.cpp also does control
 }
 
+float RbdPosController::quat2eul(const geometry_msgs::Pose& pose, std::vector<double> &rpy){
+
+  tf::Quaternion tf_orientation;
+  tf_orientation.setValue(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
+  tf::Matrix3x3 tf_m(tf_orientation);
+
+  tf_m.getRPY(rpy[0], rpy[1], rpy[2]);
+  if(isnan(rpy[0])) rpy[0] = 0;
+  if(isnan(rpy[1])) rpy[1] = 0;
+  if(isnan(rpy[2])) rpy[2] = 0;
+
+
+}
+
 
 void RbdPosController::actualPositionCallback(const geometry_msgs::Pose& pose)
 {
@@ -102,10 +117,31 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::Pose& pose)
   z.y = 0;
   z.z = 0;
   actual_position = z;//pose.position;
-  actual_orientation = pose.orientation;
+  actual_orientation = pose.orientation; 
   //ROS_INFO_STREAM("actual position [XYZ xyzq]"<<actual_position.x<<";"<<actual_position.y<<";"<<actual_position.z<<";"<<actual_orientation.x<<";"<<actual_orientation.y<<";"<<actual_orientation.z<<";"<<actual_orientation.w);
   //ROS_INFO_STREAM("goal position [XYZ RPY]"<<goal_position.x<<";"<<goal_position.y<<";"<<goal_position.z<<";"<<goal_roll<<";"<<goal_pitch<<";"<<goal_yaw);
   
+  /* Rotate to align to path*/
+  std::vector<double> pose_rpy = std::vector<double> (3);
+  quat2eul(pose,pose_rpy);
+
+  float delta_phi = goal_yaw-pose_rpy[2];
+  vel_message.angular.x = 0;
+  vel_message.angular.y = 0;
+  vel_message.angular.z = 0;
+  vel_message.linear.x = 0;
+  vel_message.linear.y = 0;
+  vel_message.linear.z = 0;
+
+  if((delta_phi >= 0.2) & (!emergency_stop)){
+    vel_message.angular.z = saturate(delta_phi*kp_angular, -0.5, 0.5);
+  }
+  
+  cmdVelPublisher_.publish(vel_message);
+
+
+
+  /* Linear movement controller*/
   //control loop for 2D position controller
   remaining_distance = sqrt(pow(actual_position.x-goal_position.x,2)+pow(actual_position.y-goal_position.y,2));
 
