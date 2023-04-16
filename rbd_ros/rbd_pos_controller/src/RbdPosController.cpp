@@ -138,13 +138,13 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::Pose& pose)
     case true: 
         // Control loop
         status_message.data = "running";
-        switch(control_state){
+        switch(pos_control_state){
           case PRE_ROTATION:
             if(gamma >= 0.01){
               vel_message.angular.z = saturate(gamma*kp_angular, -0.5, 0.5);
             } else {
-              //control_state = LIN_MOVEMENT;
-              control_state = BODY_POSE;   // for testing (skips lin movement and post rotation)
+              //pos_control_state = LIN_MOVEMENT;
+              pos_control_state = BODY_POSE;   // for testing (skips lin movement and post rotation)
             }
             break;
 
@@ -155,7 +155,7 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::Pose& pose)
               vel_message.linear.x = saturate(rho*kp_linear, -0.5, 0.5);
               vel_message.linear.y = saturate(gamma*kp_angular_lin, -0.5, 0.5); //will be translated onto rotateSpeed by qre...
             } else {
-              control_state = POST_ROTATION;
+              pos_control_state = POST_ROTATION;
             }
             break;
 
@@ -164,7 +164,7 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::Pose& pose)
             if(delta >= 0.01){
               vel_message.angular.z = saturate(delta*kp_angular, -0.5, 0.5);
             } else {
-              control_state = BODY_POSE;
+              pos_control_state = BODY_POSE;
             }
 
             break;
@@ -188,7 +188,7 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::Pose& pose)
             ros::WallDuration(1.0).sleep();
             // set status to idle
             status_message.data = "idle";
-            control_state = PRE_ROTATION;
+            pos_control_state = PRE_ROTATION;
             break;
 
         cmdVelPublisher_.publish(vel_message);

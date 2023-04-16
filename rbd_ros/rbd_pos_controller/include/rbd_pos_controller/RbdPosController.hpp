@@ -130,14 +130,14 @@ class RbdPosController
   //double zero_height = 0.41;
   //double ctrl_vel_x, ctrl_vel_y;
 
-  /* Control state for state machine */
+  /* Position control state for state machine */
   typedef enum{
       PRE_ROTATION,
       LIN_MOVEMENT,
       POST_ROTATION,
       BODY_POSE
-  }control_state_t;
-  control_state_t control_state;
+  }pos_control_state_t;
+  pos_control_state_t pos_control_state;
 
 };
 
