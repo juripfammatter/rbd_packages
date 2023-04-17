@@ -60,7 +60,11 @@ class RbdPosController
    */
   void envelope(double &vx, double &vy);
 
-
+  /**
+   * @brief limits angle to the interval [-pi, pi]
+   * 
+   * @param angle 
+   */
   void limitToPi(float& angle);
 
   /**
@@ -75,7 +79,7 @@ class RbdPosController
    * ROS topic callback method.
    * @param message the received message.
    */
-  void actualPositionCallback(const geometry_msgs::Pose& pose);
+  void actualPositionCallback(const geometry_msgs::PoseStamped& pose);
 
   /*!
    * ROS service server callback.

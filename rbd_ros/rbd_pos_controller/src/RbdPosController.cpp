@@ -117,15 +117,15 @@ void RbdPosController::quat2eul(const geometry_msgs::Pose& pose, std::vector<dou
 }
 
 
-void RbdPosController::actualPositionCallback(const geometry_msgs::Pose& pose)
+void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& pose)
 {
   /* Get yaw angle of actual pose */
   std::vector<double> pose_rpy = std::vector<double> (3);
-  quat2eul(pose,pose_rpy);
+  quat2eul(pose.pose,pose_rpy);
 
   /* Calculate position error */
-  float e_x = goal_position.x-pose.position.x;
-  float e_y = goal_position.y- pose.position.y;
+  float e_x = goal_position.x-pose.pose.position.x;
+  float e_y = goal_position.y- pose.pose.position.y;
   float rho = sqrt(e_x*e_x+e_y*e_y);
 
   /* Calculate helper angles (in radian) */
@@ -139,7 +139,7 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::Pose& pose)
   /* Reset Velocity */
   vel_message = zero_twist;
 
-  ROS_INFO_STREAM_THROTTLE(0.5,"alpha:"<<alpha<<" gamma:"<<gamma<<" delta:"<<delta);
+  ROS_INFO_STREAM_THROTTLE(0.5,"e_x:" << e_x << "e_y" << e_y << "rho:" << rho << "\nalpha:"<<alpha<<" gamma:"<<gamma<<" delta:"<<delta);
 
   
   /*************************** State machine ****************************/
@@ -164,6 +164,7 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::Pose& pose)
             if(pose_requested){
               status_message.data = "running";
                pos_control_state = PRE_ROTATION;
+               //Check if movement is needed
               //pos_control_state = BODY_POSE;
               pose_requested = false;
             }
@@ -171,8 +172,8 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::Pose& pose)
 
 
           case PRE_ROTATION:
-            if(gamma >= 0.01){
-              // vel_message.angular.z = saturate(gamma*kp_angular, -0.5, 0.5);
+            if(fabs(gamma) >= 0.03){
+              vel_message.angular.z = saturate(gamma*kp_angular, -0.3, 0.3);
               ROS_INFO_STREAM_THROTTLE(0.5,"velocity: "<< saturate(gamma*kp_angular, -0.3, 0.3));
             } else {
               //pos_control_state = LIN_MOVEMENT;
@@ -184,8 +185,8 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::Pose& pose)
           case LIN_MOVEMENT:
             if(rho >= 0.01){
               // control loop
-              vel_message.linear.x = saturate(rho*kp_linear, -0.5, 0.5);
-              vel_message.linear.y = saturate(gamma*kp_angular_lin, -0.5, 0.5); //will be translated onto rotateSpeed by qre...
+              vel_message.linear.x = saturate(rho*kp_linear, -0.3, 0.3);
+              vel_message.linear.y = saturate(gamma*kp_angular_lin, -0.3, 0.3); //will be translated onto rotateSpeed by qre...
             } else {
               pos_control_state = POST_ROTATION;
             }
@@ -193,8 +194,8 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::Pose& pose)
 
 
           case POST_ROTATION:
-            if(delta >= 0.01){
-              vel_message.angular.z = saturate(delta*kp_angular, -0.5, 0.5);
+            if(fabs(delta) >= 0.03){
+              vel_message.angular.z = saturate(delta*kp_angular, -0.3, 0.3);
             } else {
               pos_control_state = BODY_POSE;
             }

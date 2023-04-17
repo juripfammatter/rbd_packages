@@ -4,6 +4,6 @@ status_publisher_topic: /rbd_status
 body_pose_service: /set_body_pose
 emergency_stop_service: /emergency_stop
 set_position_service: /set_position
-kp_angular: 0.032
-kp_angular_lin: 1
+kp_angular: 0.2
+kp_angular_lin: 0.1
 kp_linear: 1
