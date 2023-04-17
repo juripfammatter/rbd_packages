@@ -11,6 +11,8 @@
 #include <qre_msgs/SetBodyPose.h>
 #include <cmath>
 
+# define M_PI           3.14159265358979323846  /* pi */
+
 namespace rbd_pos_controller {
 
 /**
@@ -57,6 +59,9 @@ class RbdPosController
    * @param vy y velocity
    */
   void envelope(double &vx, double &vy);
+
+
+  void limitToPi(float& angle);
 
   /**
    * @brief conversion from geometry_msgs::Pose to std::vector<double> RPY

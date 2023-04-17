@@ -12,9 +12,9 @@
     <rosparam command="load" file="$(find rbd_navigation)/config/default.yaml" />
   </node> -->
 
-  <!-- <node pkg="rbd_pos_controller" type="rbd_pos_controller" name="rbd_pos_controller" output="screen">
+  <node pkg="rbd_pos_controller" type="rbd_pos_controller" name="rbd_pos_controller" output="screen">
     <rosparam command="load" file="$(find rbd_pos_controller)/config/default.yaml" />
-  </node> -->
+  </node>
   
   <!-- launch localization with zed camera -->
   <include file="$(find rbd_localization)/launch/rbd_localization.launch">

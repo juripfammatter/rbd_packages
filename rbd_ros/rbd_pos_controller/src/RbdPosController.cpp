@@ -92,6 +92,16 @@ void RbdPosController::envelope(double &vx, double &vy){
 //   //qre_ros/hlm.cpp also does control
 // }
 
+void RbdPosController::limitToPi(float& angle){
+
+  while(angle > M_PI){
+    angle -= 2*M_PI;
+  }
+  while(angle <= -M_PI){
+    angle += 2*M_PI;
+  }
+}
+
 void RbdPosController::quat2eul(const geometry_msgs::Pose& pose, std::vector<double> &rpy){
 
   tf::Quaternion tf_orientation;
@@ -119,12 +129,17 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::Pose& pose)
   float rho = sqrt(e_x*e_x+e_y*e_y);
 
   /* Calculate helper angles (in radian) */
-  float alpha = atan2(e_y, e_x);                      // angle of trajectory
+  float alpha = atan2(e_y, e_x);                      // angle of trajectory [-pi, pi]
   float gamma = alpha-pose_rpy[2];                    // angle for pre rotation and during linear movement
   float delta = goal_yaw-pose_rpy[2];                 // angle for final rotation
 
+  limitToPi(gamma);
+  limitToPi(delta);
+
   /* Reset Velocity */
   vel_message = zero_twist;
+
+  ROS_INFO_STREAM_THROTTLE(0.5,"alpha:"<<alpha<<" gamma:"<<gamma<<" delta:"<<delta);
 
   
   /*************************** State machine ****************************/
@@ -148,8 +163,8 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::Pose& pose)
             status_message.data = "idle";
             if(pose_requested){
               status_message.data = "running";
-              // pos_control_state = PRE_ROTATION;
-              pos_control_state = BODY_POSE;
+               pos_control_state = PRE_ROTATION;
+              //pos_control_state = BODY_POSE;
               pose_requested = false;
             }
             break;
@@ -157,7 +172,8 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::Pose& pose)
 
           case PRE_ROTATION:
             if(gamma >= 0.01){
-              vel_message.angular.z = saturate(gamma*kp_angular, -0.5, 0.5);
+              // vel_message.angular.z = saturate(gamma*kp_angular, -0.5, 0.5);
+              ROS_INFO_STREAM_THROTTLE(0.5,"velocity: "<< saturate(gamma*kp_angular, -0.3, 0.3));
             } else {
               //pos_control_state = LIN_MOVEMENT;
               pos_control_state = BODY_POSE;   // for testing (skips lin movement and post rotation)
