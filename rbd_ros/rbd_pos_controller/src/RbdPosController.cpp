@@ -187,10 +187,12 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& 
           case LIN_MOVEMENT:
             if(rho >= 0.06){
               // control loop
-              vel_message.linear.x = saturate(rho*kp_linear, -0.3, 0.3);
-              vel_message.linear.y = saturate(gamma*kp_angular_lin, -0.3, 0.3); //will be translated onto rotateSpeed by qre...
-              ROS_INFO_STREAM_THROTTLE(0.5," linear velocity: "<< saturate(rho*kp_linear, -0.3, 0.3));
-              ROS_INFO_STREAM_THROTTLE(0.5," angular velocity: "<< saturate(gamma*kp_angular_lin, -0.3, 0.3));
+              vel_message.linear.x = saturate(rho*kp_linear*cos(gamma), -0.3, 0.3);
+              vel_message.linear.y = saturate(gamma*kp_angular_lin*sin(gamma)+0.05, -0.3, 0.3);
+
+              //vel_message.angular.z = saturate(gamma*kp_angular_lin, -0.3, 0.3);
+              ROS_INFO_STREAM_THROTTLE(0.5," linear velocity: "<< saturate(rho*kp_linear*cos(gamma), -0.3, 0.3));
+              ROS_INFO_STREAM_THROTTLE(0.5," angular velocity: "<< saturate(gamma*kp_angular_lin*sin(gamma), -0.3, 0.3));
             } else {
               // pos_control_state = POST_ROTATION;
               pos_control_state = BODY_POSE;
