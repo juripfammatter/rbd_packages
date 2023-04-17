@@ -134,16 +134,22 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::Pose& pose)
   *  4. Rotate to goal (global yaw) angle
   *  5. Set goal body pose
   */
-  
-  switch(emergency_stop){
-    case false: 
-        // Control loop
+  if(emergency_stop){
+    // Emergency behaviour (vel reset done by emStopCallback)
+        status_message.data = "em_stop";
+  } else {
+    
+  // switch(emergency_stop){
+  //   case false: 
+  //       // Control loop
         
         switch(pos_control_state){
           case WAIT_FOR_POSE:
+            status_message.data = "idle";
             if(pose_requested){
               status_message.data = "running";
-              pos_control_state = PRE_ROTATION;
+              // pos_control_state = PRE_ROTATION;
+              pos_control_state = BODY_POSE;
               pose_requested = false;
             }
             break;
@@ -201,17 +207,20 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::Pose& pose)
             pos_control_state = WAIT_FOR_POSE;
             break;
 
-        cmdVelPublisher_.publish(vel_message);
         }
-      break;
+        cmdVelPublisher_.publish(vel_message);
 
-    case true:
-        // Emergency behaviour (vel reset done by emStopCallback)
-        status_message.data = "em_stop";
-        break;
   }
+      // break;
+
+  //   case true:
+  //       // Emergency behaviour (vel reset done by emStopCallback)
+  //       status_message.data = "em_stop";
+  //       break;
+  // }
 
   statusPublisher_.publish(status_message);
+  //ROS_INFO_STREAM(emergency_stop <<pos_control_state << pose_requested);
 }
 
 

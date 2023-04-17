@@ -86,7 +86,7 @@ class RbdController
       GENERATE_PATH,
       POSE_EXECUTION
   }control_state_t;
-  control_state_t control_state;
+  control_state_t control_state = WAITING_FOR_GESTURE;
 
 };
 

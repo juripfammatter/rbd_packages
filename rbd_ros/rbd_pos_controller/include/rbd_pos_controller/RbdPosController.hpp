@@ -139,7 +139,7 @@ class RbdPosController
       POST_ROTATION,
       BODY_POSE
   }pos_control_state_t;
-  pos_control_state_t pos_control_state;
+  pos_control_state_t pos_control_state = WAIT_FOR_POSE;
 
 };
 
