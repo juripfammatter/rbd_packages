@@ -2,6 +2,9 @@
 
 // STD
 #include <string>
+#include <stdio.h>
+#include <chrono>
+#include <iostream>
 
 // pcl
 #include <pcl_conversions/pcl_conversions.h>
@@ -68,12 +71,12 @@ std::vector<float> getCriticalAzimuths1(float* row){
 }
 
 void printCriticalAzimuths(std::vector<float> criticalAzimuths){
-  ROS_INFO("Number of Critical Angles: %lu", criticalAzimuths.size());
-  ROS_INFO("Critical Angles: (distance <1.0 m)");
+  printf("\nNumber of Critical Angles: %lu\n", criticalAzimuths.size());
+  printf("Critical Angles: (distance <1.0 m)\n");
   for(uint16_t i=0; i<criticalAzimuths.size(); i++){
-    ROS_INFO("%f deg", criticalAzimuths[i]);
+    printf("%f deg\n", criticalAzimuths[i]);
   }
-  ROS_INFO("\n-------------------------------\n");
+  printf("\n-------------------------------\n");
 }
 
 pcl::PointCloud<pcl::PointXYZ>::Ptr convertToPCL(const sensor_msgs::PointCloud2& inputPointCloud2){
@@ -88,10 +91,23 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr convertToPCL(const sensor_msgs::PointCloud2&
 // main callback of this node
 void RbdControllerTemplate::topicCallback(const sensor_msgs::PointCloud2& inputPointCloud2)
 {
+  using namespace std::chrono;
+
+  static int i = 0;
+  i++;
+  printf("Received PointCloud2  nr. %d\n", i);
+  auto start_Callback = high_resolution_clock::now();
+
   // convert PointCloud2& to pcl
+  auto start = high_resolution_clock::now();
   pcl::PointCloud<pcl::PointXYZ>::Ptr temp_cloud = convertToPCL(inputPointCloud2);
+  auto stop = high_resolution_clock::now();  auto duration = duration_cast<microseconds>(stop - start);
+  std::cout << "Duration_PC2_to_pcl: " << duration.count() << " us" << std::endl;
+
 
   // calculate squared range for each point and store it in 2D array
+  start = high_resolution_clock::now();
+
   int n_rows = 32, n_cols = 512;
   float squared_range[n_rows][n_cols];
   for(int row = 0; row <n_rows; row++){
@@ -103,13 +119,23 @@ void RbdControllerTemplate::topicCallback(const sensor_msgs::PointCloud2& inputP
     }
   }
 
+  stop = high_resolution_clock::now();  duration = duration_cast<microseconds>(stop - start);
+  std::cout << "Duration_pcl_to_2D: " << duration.count() << " us" << std::endl;
+
   // get critical Azimuths for row in lidar scan
   int rowToCheck = 0;
+  start = high_resolution_clock::now();
   std::vector<float> criticalAzimuths = getCriticalAzimuths1(squared_range[rowToCheck]);
+  stop = high_resolution_clock::now();  duration = duration_cast<microseconds>(stop - start);
+  std::cout << "Duration_get_Azimuths: " << duration.count() << " us" << std::endl;
 
   // print critical angles
-  printCriticalAzimuths(criticalAzimuths);
-  sleep(15);
+  //printCriticalAzimuths(criticalAzimuths);
+  puts("Calculated criticalAzimuths");
+  auto stop_Callback = high_resolution_clock::now();  duration = duration_cast<microseconds>(stop_Callback - start_Callback);
+  std::cout << "-----Time for whole function-----: " << duration.count() << " us\n" << std::endl;
+
+  //sleep(15);
 }
 
 
