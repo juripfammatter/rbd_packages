@@ -48,7 +48,7 @@ class RbdPosController
    * @param upper_limit 
    * @return saturated value
    */
-  float saturate(double value, double lower_limit, double upper_limit);
+  double saturate(double value, double lower_limit, double upper_limit);
   
   //void updateGain(void);
 
@@ -65,7 +65,7 @@ class RbdPosController
    * 
    * @param angle 
    */
-  void limitToPi(float& angle);
+  void limitToPi(double& angle);
 
   /**
    * @brief conversion from geometry_msgs::Pose to std::vector<double> RPY

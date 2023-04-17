@@ -6,4 +6,4 @@ emergency_stop_service: /emergency_stop
 set_position_service: /set_position
 kp_angular: 0.2
 kp_angular_lin: 0.1
-kp_linear: 1
+kp_linear: 0.3

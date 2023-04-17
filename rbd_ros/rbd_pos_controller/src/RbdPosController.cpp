@@ -46,14 +46,16 @@ bool RbdPosController::readParameters()
       !nodeHandle_.getParam("body_pose_service", body_pose_service)  ||
       !nodeHandle_.getParam("emergency_stop_service", emergency_stop_service)  ||
       !nodeHandle_.getParam("set_position_service", set_position_service)  ||
-      !nodeHandle_.getParam("kp_angular", kp_angular) )
+      !nodeHandle_.getParam("kp_angular", kp_angular)   ||
+      !nodeHandle_.getParam("kp_angular_lin", kp_angular_lin)  ||
+      !nodeHandle_.getParam("kp_linear", kp_linear))
   {
     return false;
   } 
   return true;
 }
 
-float RbdPosController::saturate(double value, double lower_limit, double upper_limit)
+double RbdPosController::saturate(double value, double lower_limit, double upper_limit)
 {
   double sat_value;
 
@@ -92,7 +94,7 @@ void RbdPosController::envelope(double &vx, double &vy){
 //   //qre_ros/hlm.cpp also does control
 // }
 
-void RbdPosController::limitToPi(float& angle){
+void RbdPosController::limitToPi(double& angle){
 
   while(angle > M_PI){
     angle -= 2*M_PI;
@@ -124,14 +126,14 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& 
   quat2eul(pose.pose,pose_rpy);
 
   /* Calculate position error */
-  float e_x = goal_position.x-pose.pose.position.x;
-  float e_y = goal_position.y- pose.pose.position.y;
-  float rho = sqrt(e_x*e_x+e_y*e_y);
+  double e_x = goal_position.x-pose.pose.position.x;
+  double e_y = goal_position.y- pose.pose.position.y;
+  double rho = sqrt(e_x*e_x+e_y*e_y);
 
   /* Calculate helper angles (in radian) */
-  float alpha = atan2(e_y, e_x);                      // angle of trajectory [-pi, pi]
-  float gamma = alpha-pose_rpy[2];                    // angle for pre rotation and during linear movement
-  float delta = goal_yaw-pose_rpy[2];                 // angle for final rotation
+  double alpha = atan2(e_y, e_x);                      // angle of trajectory [-pi, pi]
+  double gamma = alpha-pose_rpy[2];                    // angle for pre rotation and during linear movement
+  double delta = goal_yaw-pose_rpy[2];                 // angle for final rotation
 
   limitToPi(gamma);
   limitToPi(delta);
@@ -172,29 +174,32 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& 
 
 
           case PRE_ROTATION:
-            if(fabs(gamma) >= 0.03){
+            if(fabs(gamma) >= 0.06){
               vel_message.angular.z = saturate(gamma*kp_angular, -0.3, 0.3);
-              ROS_INFO_STREAM_THROTTLE(0.5,"velocity: "<< saturate(gamma*kp_angular, -0.3, 0.3));
+              ROS_INFO_STREAM_THROTTLE(0.5," angular velocity: "<< saturate(gamma*kp_angular, -0.3, 0.3));
             } else {
-              //pos_control_state = LIN_MOVEMENT;
-              pos_control_state = BODY_POSE;   // for testing (skips lin movement and post rotation)
+              pos_control_state = LIN_MOVEMENT;
+              //pos_control_state = BODY_POSE;   // for testing (skips lin movement and post rotation)
             }
             break;
 
 
           case LIN_MOVEMENT:
-            if(rho >= 0.01){
+            if(rho >= 0.06){
               // control loop
               vel_message.linear.x = saturate(rho*kp_linear, -0.3, 0.3);
               vel_message.linear.y = saturate(gamma*kp_angular_lin, -0.3, 0.3); //will be translated onto rotateSpeed by qre...
+              ROS_INFO_STREAM_THROTTLE(0.5," linear velocity: "<< saturate(rho*kp_linear, -0.3, 0.3));
+              ROS_INFO_STREAM_THROTTLE(0.5," angular velocity: "<< saturate(gamma*kp_angular_lin, -0.3, 0.3));
             } else {
-              pos_control_state = POST_ROTATION;
+              // pos_control_state = POST_ROTATION;
+              pos_control_state = BODY_POSE;
             }
             break;
 
 
           case POST_ROTATION:
-            if(fabs(delta) >= 0.03){
+            if(fabs(delta) >= 0.06){
               vel_message.angular.z = saturate(delta*kp_angular, -0.3, 0.3);
             } else {
               pos_control_state = BODY_POSE;
