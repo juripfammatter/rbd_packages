@@ -154,28 +154,29 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& 
   if(emergency_stop){
     // Emergency behaviour (vel reset done by emStopCallback)
         status_message.data = "em_stop";
+        pose_requested = false;
   } else {
-    
-  // switch(emergency_stop){
-  //   case false: 
-  //       // Control loop
-        
         switch(pos_control_state){
           case WAIT_FOR_POSE:
             status_message.data = "idle";
             if(pose_requested){
               status_message.data = "running";
-               pos_control_state = PRE_ROTATION;
-               //Check if movement is needed
-              //pos_control_state = BODY_POSE;
+
+              /* For small distances, no rotation us needed*/
+              if(rho >= 0.5){
+                pos_control_state = PRE_ROTATION;
+              } else {
+                pos_control_state = LIN_MOVEMENT;
+              }
               pose_requested = false;
             }
             break;
 
 
           case PRE_ROTATION:
-            if(fabs(gamma) >= 0.06){
+            if(fabs(gamma) >= 0.1){
               vel_message.angular.z = saturate(gamma*kp_angular, -0.3, 0.3);
+              vel_message.linear.y = 0.02;
               ROS_INFO_STREAM_THROTTLE(0.5," angular velocity: "<< saturate(gamma*kp_angular, -0.3, 0.3));
             } else {
               pos_control_state = LIN_MOVEMENT;
@@ -185,24 +186,26 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& 
 
 
           case LIN_MOVEMENT:
-            if(rho >= 0.06){
+            if(rho >= 0.1){
               // control loop
               vel_message.linear.x = saturate(rho*kp_linear*cos(gamma), -0.3, 0.3);
-              vel_message.linear.y = saturate(gamma*kp_angular_lin*sin(gamma)+0.05, -0.3, 0.3);
+              vel_message.linear.y = saturate(rho*kp_angular_lin*sin(gamma)+0.075, -0.3, 0.3);
+              //vel_message.angular.z = 0.001;                                                       //compensation
 
               //vel_message.angular.z = saturate(gamma*kp_angular_lin, -0.3, 0.3);
               ROS_INFO_STREAM_THROTTLE(0.5," linear velocity: "<< saturate(rho*kp_linear*cos(gamma), -0.3, 0.3));
               ROS_INFO_STREAM_THROTTLE(0.5," angular velocity: "<< saturate(gamma*kp_angular_lin*sin(gamma), -0.3, 0.3));
             } else {
-              // pos_control_state = POST_ROTATION;
-              pos_control_state = BODY_POSE;
+              pos_control_state = POST_ROTATION;
+              //pos_control_state = BODY_POSE;
             }
             break;
 
 
           case POST_ROTATION:
-            if(fabs(delta) >= 0.06){
+            if(fabs(delta) >= 0.1){
               vel_message.angular.z = saturate(delta*kp_angular, -0.3, 0.3);
+              vel_message.linear.y = 0.02;
             } else {
               pos_control_state = BODY_POSE;
             }
@@ -211,7 +214,7 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& 
 
 
           case BODY_POSE:
-            //create request (normed to [-1,1])
+            /* create request (normed to [-1,1]) */
             pose_srv.request.request.roll =  goal_roll*k_roll;
             pose_srv.request.request.pitch =  goal_pitch*k_pitch;
             //pose_srv.request.request.yaw =  goal_yaw*k_yaw;
@@ -235,13 +238,6 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& 
         cmdVelPublisher_.publish(vel_message);
 
   }
-      // break;
-
-  //   case true:
-  //       // Emergency behaviour (vel reset done by emStopCallback)
-  //       status_message.data = "em_stop";
-  //       break;
-  // }
 
   statusPublisher_.publish(status_message);
   //ROS_INFO_STREAM(emergency_stop <<pos_control_state << pose_requested);
