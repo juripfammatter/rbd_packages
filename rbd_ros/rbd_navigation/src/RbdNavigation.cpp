@@ -107,43 +107,75 @@ void RbdNavigation::initChoreography(void){
 
 
   /* Walk */
-  walk_poses.push_back(zero_pose);
+
+  tf::Pose tf_walk_1;
+  tf::Pose tf_walk_2;
+  tf::Pose tf_walk_3;
+  tf::Pose tf_walk_4;
+
+  try{
+    tf::Quaternion q;
+    q.setRPY(0.0, 0.0, 0.46);
+    tf_walk_1.setOrigin(tf::Vector3(0.5, 0.25, 0.0));
+    tf_walk_1.setRotation(q);
+
+    q.setRPY(0.0, 0.0, -1.57);
+    tf_walk_2.setOrigin(tf::Vector3(0.5, -0.25, 0.0));
+    tf_walk_2.setRotation(q);
+
+    q.setRPY(0.0, 0.0, 3.14);
+    tf_walk_3.setOrigin(tf::Vector3(-0.5, 0.0, 0.0));
+    tf_walk_3.setRotation(q);
+
+    q.setRPY(0.0, 0.0, 0.0);
+    tf_walk_4.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
+    tf_walk_4.setRotation(q);
+
+    toMsgPose(tf_walk_1, walk_pose_1);
+    toMsgPose(tf_walk_2, walk_pose_2);
+    toMsgPose(tf_walk_3, walk_pose_3);
+    toMsgPose(tf_walk_4, walk_pose_4);
+
+  } catch (tf::TransformException &exception){
+    ROS_WARN("%s", exception.what());
+    ros::Duration(1.0).sleep();
+  }
+
+  // Fill array (reverse order)
+  // walk_poses.push_back(zero_pose);
+  //walk_poses.push_back(walk_pose_4);
+  walk_poses.push_back(walk_pose_3);
+  walk_poses.push_back(walk_pose_2);
+  walk_poses.push_back(walk_pose_1);
+  // walk_poses.push_back(zero_pose);
+
 
 
   /* Spin */
-  spin_poses.push_back(zero_pose);
-  
+  tf::Pose tf_spin_1;
+  tf::Pose tf_spin_2;
 
-  /* Sit */
-  // tf::Pose tf_sit;
-  // tf::Pose tf_sit_rot;
+  try{
+    tf::Quaternion q;
+    q.setRPY(0.0, 0.0, 3.14);
+    tf_spin_1.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
+    tf_spin_1.setRotation(q);
 
-  // try{
-  //   tf::Quaternion q;
-  //   q.setRPY(0.0, -0.7, 0.0);
-  //   tf_sit.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
-  //   tf_sit.setRotation(q);
+    q.setRPY(0.0, 0.0, -2.0);
+    tf_spin_2.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
+    tf_spin_2.setRotation(q);
 
-  //   tf::Quaternion q;
-  //   q.setRPY(-0.2, -0.7, 0.0);
-  //   tf_sit_rot.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
-  //   tf_sit_rot.setRotation(q);
+    toMsgPose(tf_spin_1, spin_pose_1);
+    toMsgPose(tf_spin_2, spin_pose_2);
 
-  //   toMsgPose(tf_sit, sit_pose);
-  //   toMsgPose(tf_sit_rot, sit_rot_pose);
-
-
-  // } catch (tf::TransformException &exception){
-  //   ROS_WARN("%s", exception.what());
-  //   ros::Duration(1.0).sleep();
-  // }
-
-  // // Fill array
-  // sit_poses.push_back(zero_pose);
-  // sit_poses.push_back(sit_pose);
-  // sit_poses.push_back(sit_rot_pose);
-  // sit_poses.push_back(sit_pose);
-  // sit_poses.push_back(zero_pose);
+  } catch (tf::TransformException &exception){
+    ROS_WARN("%s", exception.what());
+    ros::Duration(1.0).sleep();
+  }
+  // spin_poses.push_back(zero_pose);
+  // spin_poses.push_back(spin_pose_2);
+  spin_poses.push_back(spin_pose_1);
+  // spin_poses.push_back(zero_pose);
 
 
 }
@@ -165,7 +197,7 @@ bool RbdNavigation::serviceCallback(rbd_msgs::GeneratePath::Request& request,
 
   } else if(request.command == "walk"){
     response.poses = walk_poses;
-    response.nr_of_poses = 1;
+    response.nr_of_poses = 3;
     return true;
 
   } else if(request.command == "spin"){

@@ -57,7 +57,7 @@ void RbdController::statusCallback(const std_msgs::String& message)
   if(execution_status == "em_stop"){
     ROS_INFO_STREAM_ONCE("em_stop enabled");
 
-  } else {
+  } else if(execution_status == "idle"){
     switch(control_state){
       case WAITING_FOR_GESTURE:
           /* Attentive Pose*/
@@ -117,7 +117,7 @@ void RbdController::statusCallback(const std_msgs::String& message)
 
           if (executionClient_.call(execution_srv)){
             ROS_INFO_STREAM(""<< execution_srv.response.message);
-            ros::WallDuration(1.0).sleep();
+            ros::WallDuration(0.1).sleep();
 
           } else {
             ROS_ERROR("Failed to call service set_position");
@@ -147,6 +147,8 @@ void RbdController::statusCallback(const std_msgs::String& message)
           }
         break;
     }
+  } else {
+    ROS_INFO_STREAM_THROTTLE(0.5,"controller running");
   }
 
   /* Gesture */
