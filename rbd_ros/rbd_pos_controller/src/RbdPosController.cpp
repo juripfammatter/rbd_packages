@@ -22,6 +22,7 @@ RbdPosController::RbdPosController(ros::NodeHandle& nodeHandle)
 
   // Create service servers/clients
   emServiceServer_ = nodeHandle_.advertiseService(emergency_stop_service,&RbdPosController::emStopCallback, this);
+  colServiceServer_ = nodeHandle_.advertiseService(collision_service,&RbdPosController::collisionCallback, this);
   posServiceServer_ = nodeHandle_.advertiseService(set_position_service,&RbdPosController::setPosCallback, this);
 
   poseClient_ = nodeHandle_.serviceClient<qre_msgs::SetBodyPose>(body_pose_service);
@@ -45,10 +46,11 @@ bool RbdPosController::readParameters()
       !nodeHandle_.getParam("status_publisher_topic", status_pub_topic) ||
       !nodeHandle_.getParam("body_pose_service", body_pose_service)  ||
       !nodeHandle_.getParam("emergency_stop_service", emergency_stop_service)  ||
-      !nodeHandle_.getParam("set_position_service", set_position_service)  ||
+      !nodeHandle_.getParam("collision_service", collision_service)  ||
+      !nodeHandle_.getParam("set_position_service", set_position_service) ||
       !nodeHandle_.getParam("kp_angular", kp_angular)   ||
-      !nodeHandle_.getParam("kp_angular_lin", kp_angular_lin)  ||
-      !nodeHandle_.getParam("kp_linear", kp_linear))
+      !nodeHandle_.getParam("kp_linear_x", kp_linear_x)  ||
+      !nodeHandle_.getParam("kp_linear_y", kp_linear_y))
   {
     return false;
   } 
@@ -138,10 +140,20 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& 
   limitToPi(gamma);
   limitToPi(delta);
 
+
+  /* position error for first rotation*/
+  double static_e_x = static_x-pose.pose.position.x;
+  double static_e_y = static_y- pose.pose.position.y;
+  double static_rho = sqrt(static_e_x*static_e_x + static_e_y*static_e_y);
+
+  double static_alpha = atan2(static_e_y, static_e_x);
+  double static_gamma = static_alpha-pose_rpy[2];       // angle for pose correction during rotation
+  limitToPi(static_gamma);
+
   /* Reset Velocity */
   vel_message = zero_twist;
 
-  ROS_INFO_STREAM_THROTTLE(0.5,"e_x:" << e_x << "e_y" << e_y << "rho:" << rho << "\nalpha:"<<alpha<<" gamma:"<<gamma<<" delta:"<<delta);
+  //ROS_INFO_STREAM_THROTTLE(0.5,"e_x:" << e_x << "e_y" << e_y << "rho:" << rho << "\nalpha:"<<alpha<<" gamma:"<<gamma<<" delta:"<<delta);
 
   
   /*************************** State machine ****************************/
@@ -153,8 +165,15 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& 
   */
   if(emergency_stop){
     // Emergency behaviour (vel reset done by emStopCallback)
-        status_message.data = "em_stop";
-        pose_requested = false;
+    status_message.data = "em_stop";
+    pose_requested = false;
+
+  } else if(collision_detected){
+    // Collision behaviour (vel reset done by emStopCallback)
+    // Can be reset automatically
+    status_message.data = "collision";
+    pose_requested = false;
+
   } else {
         switch(pos_control_state){
           case WAIT_FOR_POSE:
@@ -162,9 +181,12 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& 
             if(pose_requested){
               status_message.data = "running";
 
-              /* For small distances, no rotation and/or linear movement is needed*/
+              /* For small distances, no rotation and/or linear movement is needed (removes unnecessary mode changes)*/
               if(rho >= 0.2){
                 pos_control_state = PRE_ROTATION;
+                //rotate around current point
+                static_x = pose.pose.position.x;
+                static_y = pose.pose.position.y;
               } else if (rho >= 0.1) {
                 pos_control_state = LIN_MOVEMENT;
               } else if(fabs(delta) >= 0.3){
@@ -179,12 +201,14 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& 
 
           case PRE_ROTATION:
             if(fabs(gamma) >= 0.05){
+              vel_message.linear.x = saturate(static_rho*kp_linear_x*cos(static_gamma), -0.3, 0.3);
+              vel_message.linear.y = saturate(static_rho*kp_linear_y*sin(static_gamma), -0.3, 0.3);
+
               vel_message.angular.z = saturate(gamma*kp_angular, -0.3, 0.3);
-              vel_message.linear.y = 0.02;
-              ROS_INFO_STREAM_THROTTLE(0.5," angular velocity: "<< saturate(gamma*kp_angular, -0.3, 0.3));
+              //vel_message.linear.y = 0.02;
+              //ROS_INFO_STREAM_THROTTLE(0.5," angular velocity: "<< saturate(gamma*kp_angular, -0.3, 0.3));
             } else {
               pos_control_state = LIN_MOVEMENT;
-              //pos_control_state = BODY_POSE;   // for testing (skips lin movement and post rotation)
             }
             break;
 
@@ -192,11 +216,11 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& 
           case LIN_MOVEMENT:
             if(rho >= 0.05){
               // control loop
-              vel_message.linear.x = saturate(rho*kp_linear*cos(gamma), -0.3, 0.3);
-              vel_message.linear.y = saturate(rho*kp_angular_lin*sin(gamma)+0.075, -0.3, 0.3);
+              vel_message.linear.x = saturate(rho*kp_linear_x*cos(gamma), -0.3, 0.3);
+              vel_message.linear.y = saturate(rho*kp_linear_y*sin(gamma)+0.075, -0.3, 0.3);
               //vel_message.angular.z = 0.001;                                                       //compensation
-              ROS_INFO_STREAM_THROTTLE(0.5," linear velocity: "<< saturate(rho*kp_linear*cos(gamma), -0.3, 0.3));
-              ROS_INFO_STREAM_THROTTLE(0.5," angular velocity: "<< saturate(gamma*kp_angular_lin*sin(gamma), -0.3, 0.3));
+              ROS_INFO_STREAM_THROTTLE(0.5," linear velocity: "<< saturate(rho*kp_linear_x*cos(gamma), -0.3, 0.3));
+              ROS_INFO_STREAM_THROTTLE(0.5," angular velocity: "<< saturate(gamma*kp_linear_y*sin(gamma), -0.3, 0.3));
             } else {
               pos_control_state = POST_ROTATION;
               //pos_control_state = BODY_POSE;
@@ -257,12 +281,27 @@ bool RbdPosController::emStopCallback(std_srvs::SetBool::Request& request,
 		cmdVelPublisher_.publish(stop_message);
 		response.message = "emergency flag set";
 
-    // status_message.data = "em_stop";
-    // statusPublisher_.publish(status_message);
 	} else {
 		response.message = "emergency flag reset";
-    // status_message.data = "idle";
-    // statusPublisher_.publish(status_message);
+	}
+
+	response.success = true;
+  return 1;
+}
+
+
+bool RbdPosController::collisionCallback(std_srvs::SetBool::Request& request,
+                                          std_srvs::SetBool::Response& response)
+{
+  this->collision_detected = request.data;
+
+	if(collision_detected){
+    stop_message = zero_twist;
+		cmdVelPublisher_.publish(stop_message);
+		response.message = "collision flag set";
+
+	} else {
+		response.message = "collision flag reset";
 	}
 
 	response.success = true;
