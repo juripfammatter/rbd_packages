@@ -50,8 +50,8 @@ class Gestrec():
 
         # openCV
         self.cv_cap_flip = True
-        # self.cv_cap_source = 0  # 0 == default device
-        self.cv_cap_source = 'http://192.168.123.12:8080/?action=stream'  # 0 == default device
+        self.cv_cap_source = 0  # 0 == default device (webcam)
+        # self.cv_cap_source = 'http://192.168.123.12:8080/?action=stream'  # 0 == default device
 
         # processes
         self._cap_proc = None
@@ -164,7 +164,7 @@ class Gestrec():
                             #execute_command(_COMMANDS_DICT[idx])
                             land_q.clear()
                             talker.publish(roslibpy.Message({'data': _COMMANDS_DICT[idx]}))
-                            print('Sending gesture...')
+                            print('Sending gesture '+_COMMANDS_DICT[idx])
                             time.sleep(1)
 
                         # print text to image

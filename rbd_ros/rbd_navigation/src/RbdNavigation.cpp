@@ -58,12 +58,12 @@ void RbdNavigation::initChoreography(void){
 
   try{
     tf::Quaternion q;
-    q.setRPY(0.0,0.2,0.0);
-    tf_wiggle_left_pose.setOrigin(tf::Vector3(0,0,0));
+    q.setRPY(0.0, 0.2, 0.0);
+    tf_wiggle_left_pose.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
     tf_wiggle_left_pose.setRotation(q);
 
-    q.setRPY(0.0,-0.2,0.0);
-    tf_wiggle_right_pose.setOrigin(tf::Vector3(0,0,0));
+    q.setRPY(0.0, -0.2, 0.0);
+    tf_wiggle_right_pose.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
     tf_wiggle_right_pose.setRotation(q);
 
     toMsgPose(tf_wiggle_left_pose, wiggle_left_pose);
@@ -73,6 +73,7 @@ void RbdNavigation::initChoreography(void){
     ros::Duration(1.0).sleep();
   }
 
+  // Fill array
   wiggle_poses.push_back(zero_pose);
   wiggle_poses.push_back(wiggle_left_pose);
   wiggle_poses.push_back(wiggle_right_pose);
@@ -82,17 +83,111 @@ void RbdNavigation::initChoreography(void){
   wiggle_poses.push_back(wiggle_right_pose);
   wiggle_poses.push_back(zero_pose);
 
-  /* Walk */
-  walk_poses.push_back(zero_pose);
-
-  /* Spin */
-  spin_poses.push_back(zero_pose);
 
   /* Lie Down */
+  tf::Pose tf_lie_down;
+
+  try{
+    tf::Quaternion q;
+    q.setRPY(0.0, 0.0, 0.0);
+    tf_lie_down.setOrigin(tf::Vector3(0.0, 0.0, -1.0));
+    tf_lie_down.setRotation(q);
+
+    toMsgPose(tf_lie_down, lie_down_pose);
+
+  } catch (tf::TransformException &exception){
+    ROS_WARN("%s", exception.what());
+    ros::Duration(1.0).sleep();
+  }
+
+  // Fill array
+  lie_down_poses.push_back(zero_pose);
+  lie_down_poses.push_back(lie_down_pose);
   lie_down_poses.push_back(zero_pose);
 
-  /* Sit */
-  sit_poses.push_back(zero_pose);
+
+  /* Walk */
+
+  tf::Pose tf_walk_1;
+  tf::Pose tf_walk_2;
+  tf::Pose tf_walk_3;
+  tf::Pose tf_walk_4;
+
+  try{
+    tf::Quaternion q;
+    // q.setRPY(0.0, 0.0, 0.46);
+    // tf_walk_1.setOrigin(tf::Vector3(0.5, 0.25, 0.0));
+    // tf_walk_1.setRotation(q);
+
+    // q.setRPY(0.0, 0.0, -1.57);
+    // tf_walk_2.setOrigin(tf::Vector3(0.5, -0.25, 0.0));
+    // tf_walk_2.setRotation(q);
+
+    // q.setRPY(0.0, 0.0, 3.14);
+    // tf_walk_3.setOrigin(tf::Vector3(-0.5, 0.0, 0.0));
+    // tf_walk_3.setRotation(q);
+
+    q.setRPY(0.0, 0.0, 0.0);
+    tf_walk_1.setOrigin(tf::Vector3(1.0, 0.0, 0.0));
+    tf_walk_1.setRotation(q);
+
+    q.setRPY(0.0, 0.0, 3.14);
+    tf_walk_2.setOrigin(tf::Vector3(-1.0, 0.0, 0.0));
+    tf_walk_2.setRotation(q);
+
+    q.setRPY(0.0, 0.0, 0.0);
+    tf_walk_3.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
+    tf_walk_3.setRotation(q);
+
+    q.setRPY(0.0, 0.0, 0.0);
+    tf_walk_4.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
+    tf_walk_4.setRotation(q);
+
+    toMsgPose(tf_walk_1, walk_pose_1);
+    toMsgPose(tf_walk_2, walk_pose_2);
+    toMsgPose(tf_walk_3, walk_pose_3);
+    toMsgPose(tf_walk_4, walk_pose_4);
+
+  } catch (tf::TransformException &exception){
+    ROS_WARN("%s", exception.what());
+    ros::Duration(1.0).sleep();
+  }
+
+  // Fill array (reverse order)
+  // walk_poses.push_back(zero_pose);
+  //walk_poses.push_back(walk_pose_4);
+  walk_poses.push_back(walk_pose_3);
+  walk_poses.push_back(walk_pose_2);
+  walk_poses.push_back(walk_pose_1);
+  // walk_poses.push_back(zero_pose);
+
+
+
+  /* Spin */
+  tf::Pose tf_spin_1;
+  tf::Pose tf_spin_2;
+
+  try{
+    tf::Quaternion q;
+    q.setRPY(0.0, 0.0, 3.14);
+    tf_spin_1.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
+    tf_spin_1.setRotation(q);
+
+    q.setRPY(0.0, 0.0, 0.0);
+    tf_spin_2.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
+    tf_spin_2.setRotation(q);
+
+    toMsgPose(tf_spin_1, spin_pose_1);
+    toMsgPose(tf_spin_2, spin_pose_2);
+
+  } catch (tf::TransformException &exception){
+    ROS_WARN("%s", exception.what());
+    ros::Duration(1.0).sleep();
+  }
+  // spin_poses.push_back(zero_pose);
+  spin_poses.push_back(spin_pose_2);
+  spin_poses.push_back(spin_pose_1);
+  // spin_poses.push_back(zero_pose);
 
 
 }
@@ -114,24 +209,25 @@ bool RbdNavigation::serviceCallback(rbd_msgs::GeneratePath::Request& request,
 
   } else if(request.command == "walk"){
     response.poses = walk_poses;
-    response.nr_of_poses = 1;
+    response.nr_of_poses = 3;
     return true;
 
   } else if(request.command == "spin"){
     response.poses = spin_poses;
-    response.nr_of_poses = 1;
+    response.nr_of_poses = 2;
     return true;
 
   }else if(request.command == "lie_down"){
     response.poses = lie_down_poses;
-    response.nr_of_poses = 1;
+    response.nr_of_poses = 3;
     return true;
     
-  }else if(request.command == "sit"){
-    response.poses = sit_poses;
-    response.nr_of_poses = 1;
-    return true;
   }
+  // else if(request.command == "sit"){
+  //   response.poses = sit_poses;
+  //   response.nr_of_poses = 5;
+  //   return true;
+  // }}
     return false;
 }
 
