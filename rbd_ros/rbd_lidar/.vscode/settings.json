@@ -64,6 +64,14 @@
         "string_view": "cpp",
         "csignal": "cpp",
         "condition_variable": "cpp",
-        "mutex": "cpp"
+        "mutex": "cpp",
+        "csetjmp": "cpp",
+        "forward_list": "cpp",
+        "future": "cpp",
+        "scoped_allocator": "cpp",
+        "regex": "cpp",
+        "valarray": "cpp",
+        "cuchar": "cpp",
+        "shared_mutex": "cpp"
     }
 }

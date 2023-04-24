@@ -21,19 +21,13 @@ namespace rbd_controller_template {
 RbdControllerTemplate::RbdControllerTemplate(ros::NodeHandle& nodeHandle)
     : nodeHandle_(nodeHandle)
 {
-  //*
   if (!readParameters()) {
     ROS_ERROR("Could not read parameters.");
     ros::requestShutdown();
   }
   ROS_INFO("Subscribed to topic: %s", subscriberTopic_.c_str());
   subscriber_ = nodeHandle_.subscribe(subscriberTopic_, 1,&RbdControllerTemplate::topicCallback, this);
-  //*/
-  //subscriber_ = nodeHandle_.subscribe("/ouster/points", 1,&RbdControllerTemplate::topicCallback, this);
-  serviceServer_ = nodeHandle_.advertiseService("get_average",&RbdControllerTemplate::serviceCallback, this);
   ROS_INFO("Successfully launched node.");
-
-
 }
 
 RbdControllerTemplate::~RbdControllerTemplate()
@@ -54,7 +48,6 @@ float getAngleFromCol(int col){
   if((col>511) || (col<0)){   // Error handling
     ROS_ERROR("Horizontal index out of bounds. Must be in interval [0, 511]");
   }
-  
   return 360*((float(col))/511);
 }
 
@@ -92,11 +85,11 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr convertToPCL(const sensor_msgs::PointCloud2&
 void RbdControllerTemplate::topicCallback(const sensor_msgs::PointCloud2& inputPointCloud2)
 {
   using namespace std::chrono;
-
+  auto start_Callback = high_resolution_clock::now();
   static int i = 0;
   i++;
   printf("Received PointCloud2  nr. %d\n", i);
-  auto start_Callback = high_resolution_clock::now();
+  printf("width: %d, heigth: %d\n", inputPointCloud2.width, inputPointCloud2.height);
 
   // convert PointCloud2& to pcl
   auto start = high_resolution_clock::now();
@@ -108,7 +101,7 @@ void RbdControllerTemplate::topicCallback(const sensor_msgs::PointCloud2& inputP
   // calculate squared range for each point and store it in 2D array
   start = high_resolution_clock::now();
 
-  int n_rows = 32, n_cols = 512;
+  int n_rows = inputPointCloud2.height, n_cols = inputPointCloud2.width;
   float squared_range[n_rows][n_cols];
   for(int row = 0; row <n_rows; row++){
     for(int col = 0; col<n_cols; col++){

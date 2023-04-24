@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(rbd_controller_template)
+project(rbd_lidar)
 
 ## Use C++14
 set(CMAKE_CXX_STANDARD 14)
@@ -18,7 +18,7 @@ find_package(catkin REQUIRED
     std_srvs
     roslint
 
-    pcl_ros
+    #pcl_ros		# only required for pcl conversion (for MATLAB plot)
 )
 
 ## Find system libraries
@@ -49,7 +49,7 @@ catkin_package(
     std_srvs
     roslint
 
-    pcl_ros
+    #pcl_ros		# only required for pcl conversion (for MATLAB plot)
 
   DEPENDS
   ## find_package(Eigen3) provides a non standard EIGEN3_INCLUDE_DIR instead of Eigen3_INCLUDE_DIRS.
@@ -83,11 +83,11 @@ include_directories(
 # target_compile_features(${PROJECT_NAME}_core INTERFACE cxx_std_11)
 
 ## A executable file called "${PROJECT_NAME}" will be produced
-## This file is build from the sources from the list (src/${PROJECT_NAME}_node.cpp and src RbdControllerTemplate.cpp)
+## This file is build from the sources from the list (src/${PROJECT_NAME}_node.cpp and src RbdLidar.cpp)
 ## These two source files usually have 1 "main" function that gets executed when executing the "${PROJECT_NAME}" file
 add_executable(${PROJECT_NAME}
   src/${PROJECT_NAME}_node.cpp
-  src/RbdControllerTemplate.cpp
+  src/RbdLidar.cpp
 )
 target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_11)
 

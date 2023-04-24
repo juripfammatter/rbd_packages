@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>rbd_controller_template</name>
+  <name>rbd_lidar</name>
   <version>0.1.0</version>
   <description>A template for ROS packages.</description>
   <maintainer email="schwed02@students.zhaw.ch">Daniel Schweizer</maintainer>
@@ -19,7 +19,8 @@
   <depend>eigen3</depend>
   <depend>roslint</depend>
 
-  <depend>pcl_ros</depend>
+  <!-- # only required for pcl conversion (for MATLAB plot) -->
+  <!-- <depend>pcl_ros</depend>		 -->
 
 
 </package>
