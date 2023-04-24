@@ -1,5 +1,11 @@
 <launch>
-	<include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch"/>
+	<arg name="port" default="9090"/>
+	<arg name="address" default="0.0.0.0"/>
+
+	<include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch">
+		<arg name="port" value="$(arg port)"/>
+		<arg name="address" value="$(arg address)"/>
+	</include>
 	<node pkg="tf2_web_republisher" type="tf2_web_republisher" name="tf2_web_republisher" output="screen"/>
 	<node pkg="rbd_gestrec_py" type="gestrec_node.py" name="gestrec_node"/>
 </launch>

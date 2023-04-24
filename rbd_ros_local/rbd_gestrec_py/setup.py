@@ -7,7 +7,7 @@ from catkin_pkg.python_setup import generate_distutils_setup
 setup_args = generate_distutils_setup(
     packages=['gestrec'],
     package_dir={'': 'src'},
-    requires=['std_msgs', 'rospy', 'rbd_gestrec_py', 'sys']
+    requires=['std_msgs', 'rospy', 'rbd_msgs', 'rbd_gestrec_py', 'sys']
 )
 
 setup(**setup_args)

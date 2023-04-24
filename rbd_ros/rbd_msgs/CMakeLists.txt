@@ -17,6 +17,7 @@ add_service_files(
   FILES
   SetPosition.srv
   GeneratePath.srv
+  GetLastGesture.srv
 )
 
 # Generate actions in the 'action' folder

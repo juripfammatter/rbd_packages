@@ -75,10 +75,28 @@ class RbdNavigation
 
   //Custom poses
   std::vector<geometry_msgs::Pose> wiggle_poses;
+  std::vector<geometry_msgs::Pose> walk_poses;
+  std::vector<geometry_msgs::Pose> spin_poses;
+  std::vector<geometry_msgs::Pose> lie_down_poses;
+  std::vector<geometry_msgs::Pose> sit_poses;
+
 
   geometry_msgs::Pose zero_pose;
   geometry_msgs::Pose wiggle_left_pose; 
-  geometry_msgs::Pose wiggle_right_pose; 
+  geometry_msgs::Pose wiggle_right_pose;
+
+  geometry_msgs::Pose lie_down_pose; 
+
+  // geometry_msgs::Pose sit_pose;
+  // geometry_msgs::Pose sit_rot_pose;
+
+  geometry_msgs::Pose walk_pose_1;
+  geometry_msgs::Pose walk_pose_2;
+  geometry_msgs::Pose walk_pose_3;
+  geometry_msgs::Pose walk_pose_4;
+
+  geometry_msgs::Pose spin_pose_1;
+  geometry_msgs::Pose spin_pose_2;
 
 };
 

@@ -4,13 +4,13 @@
   <param name="use_sim_time" value="false" />
 
   <!-- Launch Robodog Controller Node -->
-  <node pkg="rbd_controller" type="rbd_controller" name="rbd_controller" output="screen">
+  <!-- <node pkg="rbd_controller" type="rbd_controller" name="rbd_controller" output="screen">
     <rosparam command="load" file="$(find rbd_controller)/config/default.yaml" />
-  </node>
+  </node> -->
 
-  <node pkg="rbd_navigation" type="rbd_navigation" name="rbd_navigation" output="screen">
+  <!-- <node pkg="rbd_navigation" type="rbd_navigation" name="rbd_navigation" output="screen">
     <rosparam command="load" file="$(find rbd_navigation)/config/default.yaml" />
-  </node>
+  </node> -->
 
   <node pkg="rbd_pos_controller" type="rbd_pos_controller" name="rbd_pos_controller" output="screen">
     <rosparam command="load" file="$(find rbd_pos_controller)/config/default.yaml" />

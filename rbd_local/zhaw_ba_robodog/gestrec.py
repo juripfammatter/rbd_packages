@@ -40,8 +40,8 @@ class Gestrec():
 
         # model
         self.model_min_confidence = 0.9
-        self.model_path = './model/logmod.pkl'
-        self.model_labels_path = './data/labels.txt'
+        self.model_path = '/home/juri/git/rbd_packages/rbd_local/zhaw_ba_robodog/model/logmod.pkl'
+        self.model_labels_path = '/home/juri/git/rbd_packages/rbd_local/zhaw_ba_robodog/data/labels.txt'
         self._model_active = Value(ctypes.c_bool, False)
 
         # development mode
@@ -50,8 +50,8 @@ class Gestrec():
 
         # openCV
         self.cv_cap_flip = True
-        self.cv_cap_source = 0  # 0 == default device
-        #self.cv_cap_source = 'http://192.168.123.12:8080/?action=stream'  # 0 == default device
+        self.cv_cap_source = 0  # 0 == default device (webcam)
+        # self.cv_cap_source = 'http://192.168.123.12:8080/?action=stream'  # 0 == default device
 
         # processes
         self._cap_proc = None
@@ -78,7 +78,8 @@ class Gestrec():
         return proc
 
     def __run_gestrec__(self):
-        client= roslibpy.Ros(host='localhost', port=9090)
+        #client= roslibpy.Ros(host='localhost', port=9090)
+        client= roslibpy.Ros(host='0.0.0.0', port=9090)
         client.run()
         talker= roslibpy.Topic(client, '/chatter', 'std_msgs/String')
         self._model_active.value = True
@@ -163,7 +164,7 @@ class Gestrec():
                             #execute_command(_COMMANDS_DICT[idx])
                             land_q.clear()
                             talker.publish(roslibpy.Message({'data': _COMMANDS_DICT[idx]}))
-                            print('Sending gesture...')
+                            print('Sending gesture '+_COMMANDS_DICT[idx])
                             time.sleep(1)
 
                         # print text to image
