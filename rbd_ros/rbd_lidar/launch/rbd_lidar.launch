@@ -1,0 +1,15 @@
+<launch>
+
+  <!-- Launch Lidar node -->
+  <node pkg="rbd_lidar" type="rbd_lidar" name="rbd_lidar" output="screen">
+    <!-- load .yaml file -->
+    <rosparam command="load" file="$(find rbd_lidar)/config/default.yaml" />
+
+  </node>
+
+  <include file="$(find ouster_ros)/launch/sensor.launch">
+    <arg name="viz" value="false"/>
+    <arg name="sensor_hostname" value="os-122222003163.local"/>
+  </include>
+
+</launch>
