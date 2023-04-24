@@ -6,5 +6,5 @@ emergency_stop_service: /emergency_stop
 collision_service: /collision
 set_position_service: /set_position
 kp_angular: 1.0
-kp_linear_x: 1.0
-kp_linear_y: 1.5
+kp_linear_x: 2.0
+kp_linear_y: 2.5

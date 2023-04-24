@@ -115,16 +115,28 @@ void RbdNavigation::initChoreography(void){
 
   try{
     tf::Quaternion q;
-    q.setRPY(0.0, 0.0, 0.46);
-    tf_walk_1.setOrigin(tf::Vector3(0.5, 0.25, 0.0));
+    // q.setRPY(0.0, 0.0, 0.46);
+    // tf_walk_1.setOrigin(tf::Vector3(0.5, 0.25, 0.0));
+    // tf_walk_1.setRotation(q);
+
+    // q.setRPY(0.0, 0.0, -1.57);
+    // tf_walk_2.setOrigin(tf::Vector3(0.5, -0.25, 0.0));
+    // tf_walk_2.setRotation(q);
+
+    // q.setRPY(0.0, 0.0, 3.14);
+    // tf_walk_3.setOrigin(tf::Vector3(-0.5, 0.0, 0.0));
+    // tf_walk_3.setRotation(q);
+
+    q.setRPY(0.0, 0.0, 0.0);
+    tf_walk_1.setOrigin(tf::Vector3(1.0, 0.0, 0.0));
     tf_walk_1.setRotation(q);
 
-    q.setRPY(0.0, 0.0, -1.57);
-    tf_walk_2.setOrigin(tf::Vector3(0.5, -0.25, 0.0));
+    q.setRPY(0.0, 0.0, 3.14);
+    tf_walk_2.setOrigin(tf::Vector3(-1.0, 0.0, 0.0));
     tf_walk_2.setRotation(q);
 
-    q.setRPY(0.0, 0.0, 3.14);
-    tf_walk_3.setOrigin(tf::Vector3(-0.5, 0.0, 0.0));
+    q.setRPY(0.0, 0.0, 0.0);
+    tf_walk_3.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
     tf_walk_3.setRotation(q);
 
     q.setRPY(0.0, 0.0, 0.0);
@@ -161,7 +173,7 @@ void RbdNavigation::initChoreography(void){
     tf_spin_1.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
     tf_spin_1.setRotation(q);
 
-    q.setRPY(0.0, 0.0, -2.0);
+    q.setRPY(0.0, 0.0, 0.0);
     tf_spin_2.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
     tf_spin_2.setRotation(q);
 
@@ -173,7 +185,7 @@ void RbdNavigation::initChoreography(void){
     ros::Duration(1.0).sleep();
   }
   // spin_poses.push_back(zero_pose);
-  // spin_poses.push_back(spin_pose_2);
+  spin_poses.push_back(spin_pose_2);
   spin_poses.push_back(spin_pose_1);
   // spin_poses.push_back(zero_pose);
 
@@ -202,7 +214,7 @@ bool RbdNavigation::serviceCallback(rbd_msgs::GeneratePath::Request& request,
 
   } else if(request.command == "spin"){
     response.poses = spin_poses;
-    response.nr_of_poses = 1;
+    response.nr_of_poses = 2;
     return true;
 
   }else if(request.command == "lie_down"){

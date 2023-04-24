@@ -183,10 +183,12 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& 
 
               /* For small distances, no rotation and/or linear movement is needed (removes unnecessary mode changes)*/
               if(rho >= 0.2){
-                pos_control_state = PRE_ROTATION;
+                
                 //rotate around current point
                 static_x = pose.pose.position.x;
                 static_y = pose.pose.position.y;
+
+                pos_control_state = PRE_ROTATION;
               } else if (rho >= 0.1) {
                 pos_control_state = LIN_MOVEMENT;
               } else if(fabs(delta) >= 0.3){
@@ -201,10 +203,11 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& 
 
           case PRE_ROTATION:
             if(fabs(gamma) >= 0.05){
-              vel_message.linear.x = saturate(static_rho*kp_linear_x*cos(static_gamma), -0.3, 0.3);
-              vel_message.linear.y = saturate(static_rho*kp_linear_y*sin(static_gamma), -0.3, 0.3);
+              
 
-              vel_message.angular.z = saturate(gamma*kp_angular, -0.3, 0.3);
+              vel_message.angular.z = saturate(gamma*kp_angular, -0.2, 0.2);
+              // vel_message.linear.x = saturate(1.0 *static_rho*kp_linear_x*cos(static_gamma), -0.3, 0.3);
+              vel_message.linear.y = saturate(-5.0*vel_message.angular.z*static_rho*kp_linear_y*sin(static_gamma), -0.3, 0.3);
               //vel_message.linear.y = 0.02;
               //ROS_INFO_STREAM_THROTTLE(0.5," angular velocity: "<< saturate(gamma*kp_angular, -0.3, 0.3));
             } else {
@@ -217,7 +220,7 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& 
             if(rho >= 0.05){
               // control loop
               vel_message.linear.x = saturate(rho*kp_linear_x*cos(gamma), -0.3, 0.3);
-              vel_message.linear.y = saturate(rho*kp_linear_y*sin(gamma)+0.075, -0.3, 0.3);
+              vel_message.linear.y = saturate(rho*kp_linear_y*sin(gamma), -0.3, 0.3);   //+0.075
               //vel_message.angular.z = 0.001;                                                       //compensation
               ROS_INFO_STREAM_THROTTLE(0.5," linear velocity: "<< saturate(rho*kp_linear_x*cos(gamma), -0.3, 0.3));
               ROS_INFO_STREAM_THROTTLE(0.5," angular velocity: "<< saturate(gamma*kp_linear_y*sin(gamma), -0.3, 0.3));
