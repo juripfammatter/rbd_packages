@@ -69,8 +69,13 @@ class App(customtkinter.CTk):
         self.status_text = customtkinter.CTkLabel(master=grid_frame, 
                                             justify=customtkinter.CENTER, 
                                             font=text_font, 
-                                            text_color= "#FF0000",
-                                            text = "Emergency Stop")
+                                            text_color= "#FFFFFF",
+                                            fg_color="#FF0000",
+                                            padx = 45,
+                                            pady = 15,
+                                            corner_radius= 5,
+                                            text = "Emergency Stop",
+                                            width=600)
 
 
         # Buttons
@@ -79,7 +84,7 @@ class App(customtkinter.CTk):
                                            font=text_font,
                                            border_spacing=30,
                                            hover_color="#303040",
-                                           fg_color="#505080",
+                                           fg_color="#7070D0",
                                            text= "Disable",
                                            width=600)
 
@@ -97,13 +102,13 @@ class App(customtkinter.CTk):
         if(self.em_stop):
             self.em_stop = False
 
-            self.status_text.configure(text = "Idle", text_color = "#FFFFFF")
+            self.status_text.configure(text = "Idle", fg_color = "#505080")
             self.em_button.configure(text = "Enable")
 
         else:
             self.em_stop = True
 
-            self.status_text.configure(text = "Emergency Stop", text_color = "#FF0000")
+            self.status_text.configure(text = "Emergency Stop", fg_color = "#FF0000")
             self.em_button.configure(text = "Disable")
 
     def run_script(self):
