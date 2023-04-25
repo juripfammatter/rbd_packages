@@ -72,7 +72,7 @@ class App(customtkinter.CTk):
                                             text_color= "#FFFFFF",
                                             fg_color="#FF0000",
                                             padx = 45,
-                                            pady = 15,
+                                            pady = 13,
                                             corner_radius= 5,
                                             text = "Emergency Stop",
                                             width=600)
@@ -83,7 +83,7 @@ class App(customtkinter.CTk):
                                            command=self.em_callback, 
                                            font=text_font,
                                            border_spacing=30,
-                                           hover_color="#303040",
+                                           hover_color="#505080",
                                            fg_color="#7070D0",
                                            text= "Disable",
                                            width=600)
@@ -100,12 +100,14 @@ class App(customtkinter.CTk):
     def em_callback(self):
         print("Initiating emergency stop")
         if(self.em_stop):
+            #Idle
             self.em_stop = False
 
             self.status_text.configure(text = "Idle", fg_color = "#505080")
             self.em_button.configure(text = "Enable")
 
         else:
+            #EmStop
             self.em_stop = True
 
             self.status_text.configure(text = "Emergency Stop", fg_color = "#FF0000")
