@@ -26,7 +26,7 @@ class App(customtkinter.CTk):
         title_font = ("Ubuntu Mono", 87)
         text_font = ("Ubuntu Mono", 50)
 
-        self.geometry("1700x2000")
+        self.geometry("1700x1000")
         self.title("RoboDog III User Interface")
 
         # Main Frame
@@ -77,7 +77,7 @@ class App(customtkinter.CTk):
                                             padx = 45,
                                             pady = 13,
                                             corner_radius= 5,
-                                            text = "Emergency Stop",
+                                            text = "em_stop",
                                             width=600)
 
 
@@ -108,7 +108,7 @@ class App(customtkinter.CTk):
         print('rosbridge connection status:', self.client.is_connected)
 
         # rosbridge service
-        self.service = roslibpy.Service(self.client, '/emergency_stop', 'std_srvs/SetBool')
+        self.service = roslibpy.Service(self.client, '/emergency_stop', 'std_srvs/SetBool') #, reconnect_on_close= True
         self.request = roslibpy.ServiceRequest()
 
         # status listener
@@ -123,38 +123,40 @@ class App(customtkinter.CTk):
 
     def status_callback(self, message):
         self.status = message['data']
+        print(self.status)
+
+        if(self.status == "em_stop"):
+            self.status_text.configure(text = self.status, fg_color = "#FF0000")
+            self.em_button.configure(text = "Disable")
+        else:
+            self.status_text.configure(text = self.status, fg_color = "#505080")
+            self.em_button.configure(text = "Enable")
 
     def em_callback(self):
-        if(self.em_stop):
+        
+        if(self.status == "em_stop"):
             #Idle
             print("Disabling emergency stop")
-            self.em_stop = False
-
-            self.status_text.configure(text = "Idle", fg_color = "#505080")
-            self.em_button.configure(text = "Enable")
 
             # call service
             self.request['data'] = False
-            self.result = self.service.call(self.request)
-            print('Service response: {}'.format(self.result['message']))
+            self.service.call(self.request, callback= self.cb, timeout= 1)
 
         else:
             #EmStop
             print("Enabling emergency stop")
-            self.em_stop = True
-
-            self.status_text.configure(text = "Emergency Stop", fg_color = "#FF0000")
-            self.em_button.configure(text = "Disable")
 
             # call service
             self.request['data'] = True
-            self.result = self.service.call(self.request)
-            print('Service response: {}'.format(self.result['message']))
+            self.service.call(self.request, callback= self.cb, timeout= 1)
 
     def run_script(self):
         # Replace "path/to/script.sh" with the actual path to your Bash script
         subprocess.call(["/bin/bash", "path/to/script.sh"])
-        
+
+    #callback function for service call (needed to ensure that service is non-blocking)
+    def cb(self, fill):
+        print("called")
         
 
 

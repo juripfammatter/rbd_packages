@@ -57,7 +57,10 @@ void RbdController::statusCallback(const std_msgs::String& message)
   if(execution_status == "em_stop"){
     ROS_INFO_STREAM_ONCE("em_stop enabled");
 
-  } else if(execution_status == "idle"){
+  }else if(execution_status == "collision"){
+    ROS_INFO_STREAM_ONCE("collision detected");
+    
+  }else if(execution_status == "idle"){
     switch(control_state){
       case WAITING_FOR_GESTURE:
           /* Attentive Pose*/
@@ -148,7 +151,7 @@ void RbdController::statusCallback(const std_msgs::String& message)
         break;
     }
   } else {
-    ROS_INFO_STREAM_THROTTLE(0.5,"controller running");
+    ROS_INFO_STREAM_THROTTLE(0.5,"main controller running");
   }
 
   /* Gesture */
