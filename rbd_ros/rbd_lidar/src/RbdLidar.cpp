@@ -69,7 +69,6 @@ float RbdLidar::getAzimuthDegFromCol(uint32_t col){
 std::vector<float> RbdLidar::getCriticalAzimuthsDeg(uint32_t* row){
   std::vector<float> crit_Az;
 
-  // iterate through row
   for(uint32_t col = 0; col < n_cols; col++){
     float phi_deg = getAzimuthDegFromCol(col);
     float range_mm = row[col], d_perripendicular_mm;
