@@ -16,7 +16,7 @@
 #include <vector>
 #include <fstream>
 #include <bits/stdc++.h>
-
+#include <math.h>
 
 namespace rbd_lidar {
 
@@ -51,8 +51,8 @@ class RbdLidar
   void topicCallback(const sensor_msgs::PointCloud2& message);
 
   // Private functions
-  float getAzimuthFromCol(uint32_t col);
-  std::vector<float> getCriticalAzimuths(uint32_t* row);
+  float getAzimuthDegFromCol(uint32_t col);
+  std::vector<float> getCriticalAzimuthsDeg(uint32_t* row);
   void printList(std::list<std::vector<float> >& listOfVectors);
 
   //! ROS node handle.
@@ -66,6 +66,8 @@ class RbdLidar
 
   //! loaded from default.yaml
   std::string crit_dist_str_;
+  std::string critical_dist_1_3_str;
+  std::string critical_dist_2_4_str;
 
   //! ROS client for collision avoidance service
   ros::ServiceClient collisionClient;
@@ -74,9 +76,16 @@ class RbdLidar
 
   //! Private variables
   uint32_t critical_distance_mm = 1000;
+  uint32_t critical_distance_sect1_sect3_mm = 1000;
+  uint32_t critical_distance_sect2_sect4_mm = 1000;
+  uint32_t blind_zone = 200;
+
   uint32_t nr_crit_azimuths = 0;
   uint32_t threshold_crit_azimuths = 20;
   uint32_t n_rows = 0, n_cols = 0;
+
+  uint32_t l_dog = 500, w_dog = 300, h_dog =400;
+  float alpha, beta, phi1, phi2, phi3, phi4;
 
 
 };
