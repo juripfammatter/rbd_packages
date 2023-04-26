@@ -84,6 +84,7 @@ class RbdLidar
   uint32_t threshold_crit_azimuths = 20;
   uint32_t n_rows = 0, n_cols = 0;
 
+
   uint32_t l_dog = 500, w_dog = 300, h_dog =400;
   float alpha, beta, phi1, phi2, phi3, phi4;
 

@@ -123,7 +123,7 @@ void RbdLidar::topicCallback(const sensor_msgs::PointCloud2& inputPointCloud2)
   critical_distance_sect2_sect4_mm = std::stoi(critical_dist_2_4_str.c_str());
   nr_crit_azimuths = 0;                 // reset counter for critical azimuths
   std::string file_path = "/home/juri/catkin_ws/src/rbd_lidar/src/csv/range_list.csv";  std::ofstream myFile(file_path);  myFile << "range\n";    // init file to write coordinates of last message to range_list.csv
-  collisionSrv.request.data = true;     // default: collision warning
+  collision = true;     // default: collision warning
 
   // get range for each point and store it in 2D array
   n_rows = inputPointCloud2.height, n_cols = inputPointCloud2.width;
@@ -151,10 +151,24 @@ void RbdLidar::topicCallback(const sensor_msgs::PointCloud2& inputPointCloud2)
 
   // no danger of collision
   if(nr_crit_azimuths < threshold_crit_azimuths){
-    collisionSrv.request.data = false;      // true per default
+    collision = false;
   }
-  //collisionClient.call(collisionSrv);
-  ROS_INFO_STREAM("Call: " << (int) collisionSrv.request.data);
+
+  if(collision != last_collision){
+
+    collisionSrv.request.data = collision;      // true per default
+    ROS_INFO_STREAM("Call: " << (int) collisionSrv.request.data);
+    collisionClient.call(collisionSrv);
+
+    if (!collisionClient.call(collisionSrv)){
+      ROS_ERROR("Failed to call service collision");
+    }
+
+  }
+
+  last_collision = collision;
+  
+  
 
   // print number of critical azimuths, list of the azimuths and their row
   if(nr_crit_azimuths > 0){
