@@ -112,7 +112,7 @@ class App(customtkinter.CTk):
         self.service = roslibpy.Service(self.client, '/rbd_pos_controller/emergency_stop_service', 'std_srvs/SetBool')
         self.request = roslibpy.ServiceRequest()
 
-        # status status listener
+        # status listener
         self.listener = roslibpy.Topic(self.client, '/rbd_status', 'std_msgs/String')   
         self.listener.subscribe(self.status_callback)
 
