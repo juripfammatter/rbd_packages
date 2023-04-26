@@ -78,12 +78,13 @@ class RbdLidar
   uint32_t critical_distance_mm = 1000;
   uint32_t critical_distance_sect1_sect3_mm = 1000;
   uint32_t critical_distance_sect2_sect4_mm = 1000;
-  uint32_t blind_zone = 200;
+  uint32_t blind_zone = 250;
 
   uint32_t nr_crit_azimuths = 0;
   uint32_t threshold_crit_azimuths = 20;
   uint32_t n_rows = 0, n_cols = 0;
 
+  bool collision, last_collision;
 
   uint32_t l_dog = 500, w_dog = 300, h_dog =400;
   float alpha, beta, phi1, phi2, phi3, phi4;
