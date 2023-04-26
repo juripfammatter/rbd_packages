@@ -47,7 +47,7 @@ std::vector<float> RbdLidar::getCriticalAzimuths(uint32_t* row){
   std::vector<float> crit_Az;
   
   for(uint32_t col = 0; col < n_cols; col++){
-    if((row[col] < critical_distance_mm) && !(row[col]==0)){        // ignore empty points
+    if((row[col] < critical_distance_mm) && (row[col]>=250)){        // ignore empty points
       crit_Az.push_back(getAzimuthFromCol(col));
       nr_crit_azimuths++;
     }
