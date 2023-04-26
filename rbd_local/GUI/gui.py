@@ -5,9 +5,12 @@ Created on Mon Apr 24 18:09:22 2023
 @author: juri pfammatter
 """
 
-
 import customtkinter
 import subprocess
+import roslibpy
+from time import sleep
+
+
 
 class App(customtkinter.CTk):
     def __init__(self):
@@ -89,36 +92,68 @@ class App(customtkinter.CTk):
                                            width=600)
 
 
-        
-
-
         label_1.grid(row=0, column=0, padx=200, pady = 50)
         label_2.grid(row=1, column=0, padx=200, pady = 50)
         self.em_button.grid(row=0, column=1, padx=10, pady = 50)
         self.status_text.grid(row=1, column=1, padx=10, pady = 50)
 
+
+        """ FYI: run these first in terminals
+        roslaunch rosbridge_server rosbridge_websocket.launch
+        rosrun tf2_web_republisher tf2_web_republisher
+        """
+        # rosbridge client
+        self.client= roslibpy.Ros(host='0.0.0.0', port=9090)
+        self.client.run();        
+        print('rosbridge connection status:', self.client.is_connected)
+
+        # rosbridge service
+        self.service = roslibpy.Service(self.client, '/emergency_stop', 'std_srvs/SetBool')
+        self.request = roslibpy.ServiceRequest()
+
+        # status listener
+        self.listener = roslibpy.Topic(self.client, '/rbd_status', 'std_msgs/String')   
+        self.listener.subscribe(self.status_callback)
+
+
+    # deconstructor
+    def __del__(self):
+        print("Terminating rosbridge connection")
+        self.client.terminate()
+
+    def status_callback(self, message):
+        self.status = message['data']
+
     def em_callback(self):
-        print("Initiating emergency stop")
         if(self.em_stop):
             #Idle
+            print("Disabling emergency stop")
             self.em_stop = False
 
             self.status_text.configure(text = "Idle", fg_color = "#505080")
             self.em_button.configure(text = "Enable")
 
+            # call service
+            self.request['data'] = False
+            self.result = self.service.call(self.request)
+            print('Service response: {}'.format(self.result['message']))
+
         else:
             #EmStop
+            print("Enabling emergency stop")
             self.em_stop = True
 
             self.status_text.configure(text = "Emergency Stop", fg_color = "#FF0000")
             self.em_button.configure(text = "Disable")
 
+            # call service
+            self.request['data'] = True
+            self.result = self.service.call(self.request)
+            print('Service response: {}'.format(self.result['message']))
+
     def run_script(self):
         # Replace "path/to/script.sh" with the actual path to your Bash script
         subprocess.call(["/bin/bash", "path/to/script.sh"])
-
-    def set_state(self, state, color):
-        self.status_text.configure(text = state, text_color = color)
         
         
 
