@@ -1,3 +1,5 @@
 #subscriber_topic: "/patchwork/non_ground"
 subscriber_topic: "/ouster/points"
-crit_dist: "500"
+crit_dist: "400"
+critical_dist_1_3: "550"
+critical_dist_2_4: "450"
