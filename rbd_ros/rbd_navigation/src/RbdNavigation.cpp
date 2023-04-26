@@ -54,34 +54,42 @@ void RbdNavigation::toMsgPose(const tf::Pose& tf_pose, geometry_msgs::Pose& msg_
 void RbdNavigation::initChoreography(void){
   
   /*Wiggle */
-  tf::Pose tf_wiggle_left_pose, tf_wiggle_right_pose;
+  tf::Pose tf_wiggle_1, tf_wiggle_2, tf_wiggle_3, tf_wiggle_4;
 
   try{
     tf::Quaternion q;
-    q.setRPY(0.0, 0.2, 0.0);
-    tf_wiggle_left_pose.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
-    tf_wiggle_left_pose.setRotation(q);
+    q.setRPY(0.0, 1.0, 0.0);
+    tf_wiggle_1.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
+    tf_wiggle_1.setRotation(q);
 
-    q.setRPY(0.0, -0.2, 0.0);
-    tf_wiggle_right_pose.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
-    tf_wiggle_right_pose.setRotation(q);
+    q.setRPY(0.0, -1.0, 0.0);
+    tf_wiggle_2.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
+    tf_wiggle_2.setRotation(q);
 
-    toMsgPose(tf_wiggle_left_pose, wiggle_left_pose);
-    toMsgPose(tf_wiggle_right_pose, wiggle_right_pose);
+    q.setRPY(0.5, 0.0, 0.0);
+    tf_wiggle_3.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
+    tf_wiggle_3.setRotation(q);
+
+    q.setRPY(0.5, 0.0, 0.0);
+    tf_wiggle_4.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
+    tf_wiggle_4.setRotation(q);
+
+    toMsgPose(tf_wiggle_1, wiggle_pose_1);
+    toMsgPose(tf_wiggle_2, wiggle_pose_2);
+    toMsgPose(tf_wiggle_3, wiggle_pose_3);
+    toMsgPose(tf_wiggle_4, wiggle_pose_4);
   } catch (tf::TransformException &exception){
     ROS_WARN("%s", exception.what());
     ros::Duration(1.0).sleep();
   }
 
   // Fill array
-  wiggle_poses.push_back(zero_pose);
-  wiggle_poses.push_back(wiggle_left_pose);
-  wiggle_poses.push_back(wiggle_right_pose);
-  wiggle_poses.push_back(wiggle_left_pose);
-  wiggle_poses.push_back(wiggle_right_pose);
-  wiggle_poses.push_back(wiggle_left_pose);
-  wiggle_poses.push_back(wiggle_right_pose);
-  wiggle_poses.push_back(zero_pose);
+  lie_down_poses.push_back(zero_pose);
+  wiggle_poses.push_back(wiggle_pose_2);
+  wiggle_poses.push_back(wiggle_pose_1);
+  wiggle_poses.push_back(wiggle_pose_2);
+  wiggle_poses.push_back(wiggle_pose_1);
+  
 
 
   /* Lie Down */
@@ -154,9 +162,9 @@ void RbdNavigation::initChoreography(void){
   }
 
   // Fill array (reverse order)
-  // walk_poses.push_back(zero_pose);
+  walk_poses.push_back(zero_pose);
   //walk_poses.push_back(walk_pose_4);
-  walk_poses.push_back(walk_pose_3);
+  // walk_poses.push_back(walk_pose_3);
   walk_poses.push_back(walk_pose_2);
   walk_poses.push_back(walk_pose_1);
   // walk_poses.push_back(zero_pose);
@@ -184,7 +192,7 @@ void RbdNavigation::initChoreography(void){
     ROS_WARN("%s", exception.what());
     ros::Duration(1.0).sleep();
   }
-  // spin_poses.push_back(zero_pose);
+  spin_poses.push_back(zero_pose);
   spin_poses.push_back(spin_pose_2);
   spin_poses.push_back(spin_pose_1);
   // spin_poses.push_back(zero_pose);
@@ -204,7 +212,7 @@ bool RbdNavigation::serviceCallback(rbd_msgs::GeneratePath::Request& request,
 {
   if(request.command == "wiggle"){
     response.poses = wiggle_poses;
-    response.nr_of_poses = 8;
+    response.nr_of_poses = 4;
     return true;
 
   } else if(request.command == "walk"){

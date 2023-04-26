@@ -81,7 +81,7 @@ class RbdLidar
   uint32_t blind_zone = 250;
 
   uint32_t nr_crit_azimuths = 0;
-  uint32_t threshold_crit_azimuths = 20;
+  uint32_t threshold_crit_azimuths = 70;
   uint32_t n_rows = 0, n_cols = 0;
 
   bool collision, last_collision;
