@@ -7,4 +7,9 @@
 
   </node>
 
+  <include file="$(find ouster_ros)/launch/sensor.launch">
+    <arg name="viz" value="false"/>
+    <arg name="sensor_hostname" value="os-122222003163.local"/>
+  </include>
+
 </launch>
