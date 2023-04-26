@@ -155,6 +155,7 @@ class App(customtkinter.CTk):
         subprocess.call(["/bin/bash", "path/to/script.sh"])
 
     #callback function for service call (needed to ensure that service is non-blocking)
+    #https://roslibpy.readthedocs.io/en/latest/reference/index.html
     def cb(self, fill):
         print("called")
         
