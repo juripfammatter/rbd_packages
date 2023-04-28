@@ -13,7 +13,7 @@ RbdLidar::RbdLidar(ros::NodeHandle& nodeHandle)
     ros::requestShutdown();
   }
   subscriber_ = nodeHandle_.subscribe(subscriberTopic_, 1,&RbdLidar::topicCallback, this);
-  collisionClient = nodeHandle_.serviceClient<std_srvs::SetBool>("collision");
+  collisionClient = nodeHandle_.serviceClient<std_srvs::SetBool>("/collision");
 
   ROS_INFO("Subscribed to topic: %s", subscriberTopic_.c_str());
   ROS_INFO("Loaded critical_dist_1_3_str: %s mm", critical_dist_1_3_str.c_str());
@@ -173,7 +173,7 @@ void RbdLidar::topicCallback(const sensor_msgs::PointCloud2& inputPointCloud2)
   // print number of critical azimuths, list of the azimuths and their row
   if(nr_crit_azimuths > 0){
     ROS_INFO("\n<--Total number of critical azimuths in this message: %d-->\n", nr_crit_azimuths);
-    printList(ListCriticalAzimuths);
+    // printList(ListCriticalAzimuths);
   }
   else{
     ROS_INFO("\n<--No critical azimuths found in this message-->\n");

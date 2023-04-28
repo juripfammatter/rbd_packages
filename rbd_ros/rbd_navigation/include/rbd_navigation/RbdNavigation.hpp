@@ -82,8 +82,10 @@ class RbdNavigation
 
 
   geometry_msgs::Pose zero_pose;
-  geometry_msgs::Pose wiggle_left_pose; 
-  geometry_msgs::Pose wiggle_right_pose;
+  geometry_msgs::Pose wiggle_pose_1; 
+  geometry_msgs::Pose wiggle_pose_2;
+  geometry_msgs::Pose wiggle_pose_3;
+  geometry_msgs::Pose wiggle_pose_4;
 
   geometry_msgs::Pose lie_down_pose; 
 

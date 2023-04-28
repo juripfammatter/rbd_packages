@@ -1,0 +1,19 @@
+<launch>
+	<arg name="port" default="9090"/>
+	<arg name="address" default="0.0.0.0"/>
+
+	<!-- Launch rosbridge -->
+	<include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch">
+		<arg name="port" value="$(arg port)"/>
+		<arg name="address" value="$(arg address)"/>
+	</include>
+	<node pkg="tf2_web_republisher" type="tf2_web_republisher" name="tf2_web_republisher" output="screen"/>
+
+	<!-- Launch gesture recognition -->
+	<node pkg="rbd_gestrec_py" type="gestrec_node.py" name="gestrec_node"/>
+
+	<!-- Launch Rviz  -->
+	<node name="rviz" pkg="rviz" type="rviz" output="screen" args="-d $(find rbd_gestrec_py)/config/lidar.rviz"/>
+
+</launch>
+

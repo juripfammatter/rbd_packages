@@ -15,7 +15,10 @@ from time import sleep
 class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
+        # initialize rosbridge
+        #self.init_rosbridge()
 
+        # GUI
         self.em_stop = True
 
         customtkinter.set_appearance_mode("dark")  # Modes: "System" (standard), "Dark", "Light"
@@ -26,7 +29,7 @@ class App(customtkinter.CTk):
         title_font = ("Ubuntu Mono", 87)
         text_font = ("Ubuntu Mono", 50)
 
-        self.geometry("1700x1000")
+        self.geometry("1400x1100")
         self.title("RoboDog III User Interface")
 
         # Main Frame
@@ -46,30 +49,47 @@ class App(customtkinter.CTk):
 
         # Media Frame
         media_frame = customtkinter.CTkFrame(master=sub_master_frame, 
-                                             fg_color="#303040")
+                                             fg_color="#202030")
 
         media_frame.pack(pady=20, padx=20,fill="both", expand=True)
 
 
-        grid_frame = customtkinter.CTkFrame(master=media_frame, 
+        left_col_grid = customtkinter.CTkFrame(master=media_frame, 
                                             fg_color="#303040")
+        
+        left_col_grid.grid(row = 0, column = 0, pady=20, padx=20)
 
-        grid_frame.grid(row = 2, column = 2, pady=0, padx=100)
+        left_col = customtkinter.CTkFrame(master=left_col_grid, 
+                                            fg_color="#303040")
+        
+        left_col.grid(row = 4, column = 1, pady=10, padx=10)
+
+
+
+        right_col_grid = customtkinter.CTkFrame(master=media_frame, 
+                                            fg_color="#303040")
+        
+        right_col_grid.grid(row = 0, column = 1, pady=20, padx=20)
+
+        right_col = customtkinter.CTkFrame(master=right_col_grid, 
+                                            fg_color="#303040")
+        
+        right_col.grid(row = 4, column = 1, pady=42, padx=10)
 
 
         # Labels
-        label_1 = customtkinter.CTkLabel(master=grid_frame, 
+        label_1 = customtkinter.CTkLabel(master=left_col, 
                                          justify=customtkinter.LEFT, 
                                          font = text_font, 
                                          text= "Emergency Stop:")
 
 
-        label_2 = customtkinter.CTkLabel(master=grid_frame, 
+        label_2 = customtkinter.CTkLabel(master=left_col, 
                                          justify=customtkinter.CENTER, 
                                          font=text_font, 
                                          text = "Current State:")
         
-        self.status_text = customtkinter.CTkLabel(master=grid_frame, 
+        self.status_text = customtkinter.CTkLabel(master=left_col, 
                                             justify=customtkinter.CENTER, 
                                             font=text_font, 
                                             text_color= "#FFFFFF",
@@ -79,10 +99,42 @@ class App(customtkinter.CTk):
                                             corner_radius= 5,
                                             text = "em_stop",
                                             width=600)
+        
+        #  Queue
+        queue_1 = customtkinter.CTkLabel(master=right_col, 
+                                         justify=customtkinter.LEFT, 
+                                         font=text_font, 
+                                         text = "move to (1.0, 0.0)",
+                                         width=500)
+        
+        queue_2 = customtkinter.CTkLabel(master=right_col, 
+                                         justify=customtkinter.LEFT, 
+                                         font=text_font, 
+                                         text = "move to (-1.0, 0.0)")
+        
+        queue_3 = customtkinter.CTkLabel(master=right_col, 
+                                         justify=customtkinter.LEFT, 
+                                         font=text_font, 
+                                         text = "move to (0.0, 0.0)")
+        
+        queue_4 = customtkinter.CTkLabel(master=right_col, 
+                                         justify=customtkinter.LEFT, 
+                                         font=text_font, 
+                                         text = "rotate to -180°")
+        
+        queue_5 = customtkinter.CTkLabel(master=right_col, 
+                                         justify=customtkinter.LEFT, 
+                                         font=text_font, 
+                                         text = "rotate to 0°")
+        
+        queue_6 = customtkinter.CTkLabel(master=right_col, 
+                                         justify=customtkinter.LEFT, 
+                                         font=text_font, 
+                                         text = "empty:")
 
 
         # Buttons
-        self.em_button = customtkinter.CTkButton(master=grid_frame, 
+        self.em_button = customtkinter.CTkButton(master=left_col, 
                                            command=self.em_callback, 
                                            font=text_font,
                                            border_spacing=30,
@@ -92,12 +144,29 @@ class App(customtkinter.CTk):
                                            width=600)
 
 
-        label_1.grid(row=0, column=0, padx=200, pady = 50)
-        label_2.grid(row=1, column=0, padx=200, pady = 50)
-        self.em_button.grid(row=0, column=1, padx=10, pady = 50)
-        self.status_text.grid(row=1, column=1, padx=10, pady = 50)
+        label_1.grid(row=0, column=0, padx=20, pady = 50)
+        self.em_button.grid(row=1, column=0, padx=20, pady = 50)
+        label_2.grid(row=2, column=0, padx=20, pady = 50)
+        self.status_text.grid(row=3, column=0, padx=20, pady = 50)
+
+        queue_1.grid(row=4, column=0, padx=20, pady = 40)
+        queue_2.grid(row=3, column=0, padx=20, pady = 40)
+        queue_3.grid(row=2, column=0, padx=20, pady = 40)
+        queue_4.grid(row=1, column=0, padx=20, pady = 40)
+        queue_5.grid(row=0, column=0, padx=20, pady = 40)
+        
+        
+        
+        
+        
 
 
+    # deconstructor
+    def __del__(self):
+        print("Terminating rosbridge connection")
+        self.client.terminate()
+
+    def init_rosbridge(self):
         """ FYI: run these first in terminals
         roslaunch rosbridge_server rosbridge_websocket.launch
         rosrun tf2_web_republisher tf2_web_republisher
@@ -114,12 +183,6 @@ class App(customtkinter.CTk):
         # status listener
         self.listener = roslibpy.Topic(self.client, '/rbd_status', 'std_msgs/String')   
         self.listener.subscribe(self.status_callback)
-
-
-    # deconstructor
-    def __del__(self):
-        print("Terminating rosbridge connection")
-        self.client.terminate()
 
     def status_callback(self, message):
         self.status = message['data']
