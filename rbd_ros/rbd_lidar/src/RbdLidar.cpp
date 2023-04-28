@@ -226,4 +226,3 @@ void RbdLidar::topicCallback(const sensor_msgs::PointCloud2& inputPointCloud2)
 
 } /* namespace */
 
-
