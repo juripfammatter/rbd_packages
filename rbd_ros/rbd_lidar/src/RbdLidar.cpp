@@ -26,7 +26,7 @@ RbdLidar::RbdLidar(ros::NodeHandle& nodeHandle)
   
   // handle subscription and service
   subscriber_ = nodeHandle_.subscribe(subscriberTopic_, 1,&RbdLidar::topicCallback, this);
-  collisionClient = nodeHandle_.serviceClient<std_srvs::SetBool>("collision");
+  collisionClient = nodeHandle_.serviceClient<std_srvs::SetBool>("/collision");
 
   // parameter info
   ROS_INFO("Subscribed to topic: %s", subscriberTopic_.c_str());

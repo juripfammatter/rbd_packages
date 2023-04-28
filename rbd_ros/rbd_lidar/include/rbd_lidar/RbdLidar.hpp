@@ -82,7 +82,7 @@ class RbdLidar
   uint32_t critical_distance_sect1_sect3_mm = 1000;   // default. Overwritten by critical_distance_sect1_sect3_mm_load
   uint32_t critical_distance_sect2_sect4_mm = 1000;   // default. Overwritten by critical_distance_sect2_sect4_mm_load
   uint32_t blind_zone = 250;                          // lidar cannot measure closer
-  uint32_t threshold_crit_azimuths = 20;
+  uint32_t threshold_crit_azimuths = 70;
   uint32_t nr_crit_azimuths = 0;                      // counter
 
   // collision state
