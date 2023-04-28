@@ -18,7 +18,7 @@ find_package(catkin REQUIRED
     std_srvs
     roslint
 
-    #pcl_ros		# only required for pcl conversion (for MATLAB plot)
+    pcl_ros		# only required for pcl conversion (for MATLAB plot)
 )
 
 ## Find system libraries
@@ -49,7 +49,7 @@ catkin_package(
     std_srvs
     roslint
 
-    #pcl_ros		# only required for pcl conversion (for MATLAB plot)
+    pcl_ros		# only required for pcl conversion (for MATLAB plot)
 
   DEPENDS
   ## find_package(Eigen3) provides a non standard EIGEN3_INCLUDE_DIR instead of Eigen3_INCLUDE_DIRS.

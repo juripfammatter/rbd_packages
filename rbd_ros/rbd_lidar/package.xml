@@ -20,7 +20,7 @@
   <depend>roslint</depend>
 
   <!-- # only required for pcl conversion (for MATLAB plot) -->
-  <!-- <depend>pcl_ros</depend>		 -->
+  <depend>pcl_ros</depend>
 
 
 </package>
