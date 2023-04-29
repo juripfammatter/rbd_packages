@@ -6,9 +6,10 @@
 #include <std_srvs/Trigger.h>
 #include <rbd_msgs/GeneratePath.h>
 #include <rbd_msgs/SetPosition.h>
+#include <rbd_msgs/GetLastGesture.h>
+#include <rbd_msgs/NamedPoses.h>
 #include <qre_msgs/RbdMode.h>
 #include <qre_msgs/SetBodyPose.h>
-#include <rbd_msgs/GetLastGesture.h>
 
 namespace rbd_controller {
 
@@ -48,13 +49,8 @@ class RbdController
   /* ROS topic subscriber */
   ros::Subscriber statusSubscriber_;
 
-  /* ROS topic and service names from parameter server */
-  std::string statusSubscriberTopic_;
-
-  std::string path_generation_service;
-  std::string set_postion_service;
-  std::string set_mode_service;
-  std::string last_gesture_service;
+  /* ROS topic publisher*/
+  ros::Publisher namedPosePublisher_;
 
   /* ROS service clients */
   ros::ServiceClient navigationClient_;
@@ -62,10 +58,22 @@ class RbdController
   ros::ServiceClient modeClient_;
   ros::ServiceClient gestureClient_;
 
+  /* ROS topic and service names from parameter server */
+  std::string statusSubscriberTopic_;
+  std::string named_pose_topic;
+
+  std::string path_generation_service;
+  std::string set_postion_service;
+  std::string set_mode_service;
+  std::string last_gesture_service;  
+
+  /* ROS messages*/
+  rbd_msgs::NamedPoses named_poses;
+
   /* ROS service messages */
   rbd_msgs::GeneratePath navigation_srv;
   rbd_msgs::SetPosition execution_srv;
-  rbd_msgs::GetLastGesture gesture_srv;
+  rbd_msgs::GetLastGesture gesture_srv;  
   qre_msgs::RbdMode mode_srv;
   
 
@@ -78,6 +86,7 @@ class RbdController
 
   std::string execution_status = "em_stop";
   std::string command;
+  std::vector<std::string> named_poses_array;
 
 
   /* Control state for state machine */

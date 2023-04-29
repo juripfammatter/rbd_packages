@@ -16,7 +16,7 @@ class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
         # initialize rosbridge
-        #self.init_rosbridge()
+        self.init_rosbridge()
 
         # GUI
         self.em_stop = True
@@ -181,8 +181,12 @@ class App(customtkinter.CTk):
         self.request = roslibpy.ServiceRequest()
 
         # status listener
-        self.listener = roslibpy.Topic(self.client, '/rbd_status', 'std_msgs/String')   
-        self.listener.subscribe(self.status_callback)
+        self.status_listener = roslibpy.Topic(self.client, '/rbd_status', 'std_msgs/String')   
+        self.status_listener.subscribe(self.status_callback)
+
+        # status listener
+        self.pose_listener = roslibpy.Topic(self.client, '/named_poses', 'rbd_msgs/NamedPoses')   
+        self.pose_listener.subscribe(self.pose_callback)
 
     def status_callback(self, message):
         self.status = message['data']
@@ -194,6 +198,10 @@ class App(customtkinter.CTk):
         else:
             self.status_text.configure(text = self.status, fg_color = "#505080")
             self.em_button.configure(text = "Enable")
+
+    def pose_callback(self, message):
+        print(message['namedPoses'])
+        # TBD change labels
 
     def em_callback(self):
         
