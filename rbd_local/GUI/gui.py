@@ -202,13 +202,14 @@ class App(customtkinter.CTk):
 
 
     def pose_callback(self, message):
-        print(message['namedPoses'])
-        # TBD change labels
+        # print(message['namedPoses'])
+        
         queue_text = ['','','','','']
         for i in range(0, len(message['namedPoses'])):
             queue_text[i] = message['namedPoses'][i]
-        print(queue_text)
-
+        # print(queue_text)
+        
+        # configure labels
         self.queue_1.configure(text = queue_text[0])
         self.queue_2.configure(text = queue_text[1])
         self.queue_3.configure(text = queue_text[2])
