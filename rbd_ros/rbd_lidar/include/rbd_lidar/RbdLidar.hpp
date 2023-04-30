@@ -58,7 +58,7 @@ class RbdLidar
 
   //! Private functions
   float getAzimuthDegFromCol(uint32_t col);
-  std::vector<float> getCriticalAzimuthsDeg(uint32_t* row, uint32_t rowindex);
+  std::vector<float> getCriticalAzimuthsDeg(uint32_t* row);
   void printList(std::list<std::vector<float> >& listOfVectors);
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr convertToPCL(const sensor_msgs::PointCloud2& inputPointCloud2);
 
@@ -100,6 +100,7 @@ class RbdLidar
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcl_cloud;
   uint32_t row_pcl = 0;
   ros::Publisher pub_PC2;
+
 };
 
 } /* namespace */

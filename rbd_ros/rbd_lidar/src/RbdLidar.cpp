@@ -30,8 +30,8 @@ RbdLidar::RbdLidar(ros::NodeHandle& nodeHandle)
 
   // parameter info
   ROS_INFO("Subscribed to topic: %s", subscriberTopic_.c_str());
-  ROS_INFO("Loaded critical_dist_1_3_str: %d mm", critical_distance_sect1_sect3_mm);
-  ROS_INFO("Loaded critical_dist_2_4_str: %d mm", critical_distance_sect2_sect4_mm);
+  ROS_INFO("Loaded critical_dist_1_3 (back, front): %d mm", critical_distance_sect1_sect3_mm);
+  ROS_INFO("Loaded critical_dist_2_4 (left, right): %d mm", critical_distance_sect2_sect4_mm);
   ROS_INFO("Successfully launched node.");
 
   // initialize angles for collision detection
@@ -44,6 +44,10 @@ RbdLidar::RbdLidar(ros::NodeHandle& nodeHandle)
 
 
   pub_PC2 = nodeHandle_.advertise<sensor_msgs::PointCloud2>("output_PC2_flagged", 1);
+
+  if(abs(((((float)w_dog/2)/((float)l_dog/2)*((float)critical_distance_sect1_sect3_mm)) - critical_distance_sect2_sect4_mm)) >= 20){
+    ROS_WARN("Collision zones do not meet in edge of dog");
+  }
 
 
 }
@@ -71,11 +75,14 @@ float RbdLidar::getAzimuthDegFromCol(uint32_t col){
   return 360*((float(col))/float(n_cols-1));
 }
 
-std::vector<float> RbdLidar::getCriticalAzimuthsDeg(uint32_t* row, uint32_t rowindex){
+std::vector<float> RbdLidar::getCriticalAzimuthsDeg(uint32_t* row){
   std::vector<float> crit_Az;
 
   for(uint32_t col = 0; col < n_cols; col++){
     float phi_deg = getAzimuthDegFromCol(col);
+    float row_normed = abs(row_pcl-15.5);
+    float theta_deg = row_normed*(22.5/15.5);   // 22.5 ° is max angle
+
     float range_mm = row[col], d_peripendicular_mm;
     uint32_t index_pcl = row_pcl*n_cols + col;
 
@@ -85,7 +92,7 @@ std::vector<float> RbdLidar::getCriticalAzimuthsDeg(uint32_t* row, uint32_t rowi
     }
     // Section 1 (back) and 3 (front)
     else if(((phi_deg <= phi1) || (phi_deg > phi4)) || ((phi_deg > phi2) && (phi_deg <= phi3))){
-      d_peripendicular_mm = range_mm*abs(cos(deg_to_rad(phi_deg)));
+      d_peripendicular_mm = range_mm*abs(cos(deg_to_rad(phi_deg)))*abs(cos(deg_to_rad(theta_deg)));
       // critically close
       if((d_peripendicular_mm < critical_distance_sect1_sect3_mm) && (d_peripendicular_mm > blind_zone)){
         crit_Az.push_back(phi_deg);
@@ -101,11 +108,14 @@ std::vector<float> RbdLidar::getCriticalAzimuthsDeg(uint32_t* row, uint32_t rowi
         pcl_cloud->points[index_pcl].r = 0;
         pcl_cloud->points[index_pcl].g = 255;
         pcl_cloud->points[index_pcl].b = 0;
+        pcl_cloud->points[index_pcl].x = 0;
+        pcl_cloud->points[index_pcl].y = 0;
+        pcl_cloud->points[index_pcl].z = 0;
       }
     }
     // Section 2 (left side when looking from behind) and 4 (right side " )
     else if(((phi_deg > phi1) && (phi_deg <= phi2)) || ((phi_deg > phi3) && (phi_deg < phi4))){
-      d_peripendicular_mm = range_mm*abs(sin(deg_to_rad(phi_deg)));
+      d_peripendicular_mm = range_mm*abs(sin(deg_to_rad(phi_deg)))*abs(cos(deg_to_rad(theta_deg)));
       // critically close
       if((d_peripendicular_mm < critical_distance_sect2_sect4_mm) && (d_peripendicular_mm > blind_zone)){
         crit_Az.push_back(phi_deg);
@@ -121,6 +131,9 @@ std::vector<float> RbdLidar::getCriticalAzimuthsDeg(uint32_t* row, uint32_t rowi
         pcl_cloud->points[index_pcl].r = 0;
         pcl_cloud->points[index_pcl].g = 255;
         pcl_cloud->points[index_pcl].b = 0;
+        pcl_cloud->points[index_pcl].x = 0;
+        pcl_cloud->points[index_pcl].y = 0;
+        pcl_cloud->points[index_pcl].z = 0;
       }
     }
   }
@@ -149,6 +162,8 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr RbdLidar::convertToPCL(const sensor_msgs:
   return pcl_cloud;
 }
 
+
+
 ///* Main callback of this node*///
 void RbdLidar::topicCallback(const sensor_msgs::PointCloud2& inputPointCloud2)
 {
@@ -157,8 +172,10 @@ void RbdLidar::topicCallback(const sensor_msgs::PointCloud2& inputPointCloud2)
   std::string file_path = "/home/juri/catkin_ws/src/rbd_lidar/src/csv/range_list.csv";  std::ofstream myFile(file_path);  myFile << "range\n";    // init file to write coordinates of last message to range_list.csv
   collision = true;                     // default: collision warning
 
-  // convert PointCloud2& to pcl
+  // convert PointCloud2& to pcl and generate outputPointCloud2
   pcl_cloud = convertToPCL(inputPointCloud2);
+  sensor_msgs::PointCloud2::Ptr outputPointCloud2(new sensor_msgs::PointCloud2);
+
 
   //! get range for each point and store it in 2D array
   n_rows = inputPointCloud2.height, n_cols = inputPointCloud2.width;
@@ -182,14 +199,12 @@ void RbdLidar::topicCallback(const sensor_msgs::PointCloud2& inputPointCloud2)
   }
   myFile.close();
 
-  // modified PointCloud2
-  sensor_msgs::PointCloud2::Ptr outputPointCloud2(new sensor_msgs::PointCloud2);
 
   // get critical Azimuths for row in lidar scan and store it in a list
   std::list<std::vector<float> > ListCriticalAzimuths;
   for(uint32_t rowToCheck = 0; rowToCheck < n_rows; rowToCheck++){
     row_pcl = rowToCheck;
-    ListCriticalAzimuths.push_back(getCriticalAzimuthsDeg(ranges[rowToCheck], rowToCheck));
+    ListCriticalAzimuths.push_back(getCriticalAzimuthsDeg(ranges[rowToCheck]));
   }
 
   // republish modified PointCloud2
