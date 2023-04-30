@@ -1,6 +1,6 @@
 #pragma once
 
-// ROS
+//! ROS
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <std_srvs/Trigger.h>
@@ -8,7 +8,13 @@
 #include <stdint.h>
 #include <std_srvs/SetBool.h>
 
-// STD
+// PCL
+#include <pcl_conversions/pcl_conversions.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <pcl_ros/point_cloud.h>
+#include <pcl/point_types.h>
+
+//! STD
 #include <string>
 #include <stdio.h>
 #include <chrono>
@@ -50,10 +56,11 @@ class RbdLidar
    */
   void topicCallback(const sensor_msgs::PointCloud2& message);
 
-  // Private functions
+  //! Private functions
   float getAzimuthDegFromCol(uint32_t col);
   std::vector<float> getCriticalAzimuthsDeg(uint32_t* row);
   void printList(std::list<std::vector<float> >& listOfVectors);
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr convertToPCL(const sensor_msgs::PointCloud2& inputPointCloud2);
 
   //! ROS node handle.
   ros::NodeHandle& nodeHandle_;
@@ -61,34 +68,38 @@ class RbdLidar
   //! ROS topic subscriber.
   ros::Subscriber subscriber_;
 
-  //! ROS topic name to subscribe to.
-  std::string subscriberTopic_;
-
   //! loaded from default.yaml
-  std::string crit_dist_str_;
-  std::string critical_dist_1_3_str;
-  std::string critical_dist_2_4_str;
+  std::string subscriberTopic_;
+  int critical_distance_sect1_sect3_mm_load;
+  int critical_distance_sect2_sect4_mm_load;
 
   //! ROS client for collision avoidance service
   ros::ServiceClient collisionClient;
   std_srvs::SetBool collisionSrv;
 
-
   //! Private variables
-  uint32_t critical_distance_mm = 1000;
-  uint32_t critical_distance_sect1_sect3_mm = 1000;
-  uint32_t critical_distance_sect2_sect4_mm = 1000;
-  uint32_t blind_zone = 250;
-
-  uint32_t nr_crit_azimuths = 0;
+  // thresholds and countersfor collision detection
+  uint32_t critical_distance_sect1_sect3_mm = 1000;   // default. Overwritten by critical_distance_sect1_sect3_mm_load
+  uint32_t critical_distance_sect2_sect4_mm = 1000;   // default. Overwritten by critical_distance_sect2_sect4_mm_load
+  uint32_t blind_zone = 250;                          // lidar cannot measure closer
   uint32_t threshold_crit_azimuths = 70;
-  uint32_t n_rows = 0, n_cols = 0;
+  uint32_t nr_crit_azimuths = 0;                      // counter
 
+  // collision state
   bool collision, last_collision;
 
-  uint32_t l_dog = 500, w_dog = 300, h_dog =400;
-  float alpha, beta, phi1, phi2, phi3, phi4;
+  // parameters for collision detection sections
+  uint32_t l_dog = 500, w_dog = 300, h_dog =400;      // dog dimensions (standing, according to datasheet)
+  float alpha, beta, phi1, phi2, phi3, phi4;          // angles for collision detection sections
 
+  // parameters for point cloud
+  uint32_t n_rows = 0, n_cols = 0;                    // default. Are loaded when running
+
+  // auxiliary variables
+  double deg_to_rad_factor = M_PI/180.0;
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcl_cloud;
+  uint32_t row_pcl = 0;
+  ros::Publisher pub_PC2;
 
 };
 
