@@ -1,0 +1,14 @@
+<launch>
+    <param name="use_sim_time" value="true" />
+
+    <include file="$(find ouster_ros)/launch/replay.launch">
+        <arg name="metadata" value="$(find ouster_ros)/config/metadata_2048.json"/>
+        <arg name="bag_file" value="/home/juri/ROSWorkspace/BA/bags/os1_test_2048.bag"/>
+    </include>
+
+    <!-- add static tf frame base link -> lidar -->
+    <node pkg="tf" type="static_transform_publisher" name="base_link" args="-0.3 0 0.1 0 0 0 1 base_link os_sensor  100" />
+    <!-- <node pkg="tf" type="static_transform_publisher" name="base_link_imu" args="-0.3 0 0.1 0 0 0 1 base_link os_imu  100" />
+    <node pkg="tf" type="static_transform_publisher" name="base_link_lidar" args="-0.3 0 0.1 0 0 1 0 base_link os_lidar  100" /> -->
+
+</launch>
