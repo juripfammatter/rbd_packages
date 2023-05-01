@@ -4,9 +4,14 @@
 
     <!-- Launch ouster record -->
     <include file="$(find ouster_ros)/launch/record.launch">
-        <arg name="metadata" value="$(find ouster_ros)/config/metadata_1048.json"/>
+        <arg name="metadata" value="$(find ouster_ros)/config/metadata_23_05_01.json"/>
         <arg name="bag_file" value="/home/juri/ROSWorkspace/BA/bags/os1_test_23_05_01.bag"/>
         <arg name="sensor_hostname" value="os-122222003163.local" />
     </include>
+
+    <!-- record -->
+     <!-- <node name="bag_record" pkg="rosbag" type="record"
+            args="-a -O bagname.bag" /> -->
+
 
 </launch>
