@@ -57,7 +57,6 @@ class RbdLidar
   void topicCallback(const sensor_msgs::PointCloud2& message);
 
   //! Private functions
-  float getAzimuthDegFromCol(uint32_t col);
   std::vector<float> getCriticalAzimuthsDeg(uint32_t* row);
   void printList(std::list<std::vector<float> >& listOfVectors);
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr convertToPCL(const sensor_msgs::PointCloud2& inputPointCloud2);
@@ -68,38 +67,45 @@ class RbdLidar
   //! ROS topic subscriber.
   ros::Subscriber subscriber_;
 
-  //! loaded from default.yaml
-  std::string subscriberTopic_;
-  int critical_distance_sect1_sect3_mm_load;
-  int critical_distance_sect2_sect4_mm_load;
-
   //! ROS client for collision avoidance service
   ros::ServiceClient collisionClient;
   std_srvs::SetBool collisionSrv;
 
+  //! loaded from default.yaml
+  std::string subscriberTopic_;
+  int critical_distance_back_mm_load;
+  int critical_distance_left_mm_load;
+  int critical_distance_front_mm_load;
+  int critical_distance_right_mm_load;
+  int lim_rows_back_load;
+
   //! Private variables
-  // thresholds and countersfor collision detection
-  uint32_t critical_distance_sect1_sect3_mm = 1000;   // default. Overwritten by critical_distance_sect1_sect3_mm_load
-  uint32_t critical_distance_sect2_sect4_mm = 1000;   // default. Overwritten by critical_distance_sect2_sect4_mm_load
-  uint32_t blind_zone = 250;                          // lidar cannot measure closer
+  // thresholds and counters for collision detection
+  float critical_distance_back_mm = 1000;                          // default. Overwritten by value from 'default.yaml'
+  float critical_distance_left_mm = 1000;
+  float critical_distance_front_mm = 1000;
+  float critical_distance_right_mm = 1000;
+  uint32_t lim_rows_back = 32;
+
+  uint32_t blind_zone = 250;                                        // lidar cannot measure closer
   uint32_t threshold_crit_azimuths = 70;
-  uint32_t nr_crit_azimuths = 0;                      // counter
+  uint32_t nr_crit_azimuths = 0;                                    // counter
 
   // collision state
   bool collision, last_collision;
 
-  // parameters for collision detection sections
-  uint32_t l_dog = 500, w_dog = 300, h_dog =400;      // dog dimensions (standing, according to datasheet)
-  float alpha, beta, phi1, phi2, phi3, phi4;          // angles for collision detection sections
+  // azimuths for collision detection sections
+  float alpha_deg, beta_deg, gamma_deg, delta_deg, phi1_deg, phi2_deg, phi3_deg, phi4_deg;          // angles for collision detection sections
 
-  // parameters for point cloud
-  uint32_t n_rows = 0, n_cols = 0;                    // default. Are loaded when running
+  // point cloud
+  uint32_t n_rows = 0, n_cols = 0;                                  // default. Are loaded when running
+  uint32_t row_pcl = 0;
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcl_cloud;
+  ros::Publisher pub_PC2;
 
   // auxiliary variables
   double deg_to_rad_factor = M_PI/180.0;
-  pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcl_cloud;
-  uint32_t row_pcl = 0;
-  ros::Publisher pub_PC2;
+  double rad_to_deg_factor = 180.0/M_PI;
 
 };
 
