@@ -11,7 +11,9 @@
 
   <!-- start ZED node if enable_zed = true -->
   <group if="$(arg enable_zed)">
-    <include file="$(find zed_wrapper)/launch/zed2.launch"/>
+    <include file="$(find zed_wrapper)/launch/zed2.launch">
+      <arg name="base_frame" value="zed_base_link" />
+    </include>
   </group>
 
 

@@ -4,8 +4,7 @@
   <param name="use_sim_time" value="false" />
 
   <!-- tf Transformations -->
-  <node pkg="tf" type="static_transform_publisher" name="base_link" args="-0.3 0 0.1 0 0 0 1 base_link os_sensor 100 use_sim_time:=false" />
-    
+  <include file="$(find rbd_localization)/launch/tf.launch" />
 
   <!-- Launch Robodog Controller Node -->
   <node pkg="rbd_controller" type="rbd_controller" name="rbd_controller" output="screen">

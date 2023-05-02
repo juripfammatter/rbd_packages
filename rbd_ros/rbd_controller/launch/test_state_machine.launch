@@ -8,22 +8,14 @@
     <rosparam command="load" file="$(find rbd_controller)/config/default.yaml" />
   </node>
 
+  <!-- Launch Navigation Node -->
   <node pkg="rbd_navigation" type="rbd_navigation" name="rbd_navigation" output="screen">
     <rosparam command="load" file="$(find rbd_navigation)/config/default.yaml" />
   </node>
 
+  <!-- Launch Position Controller -->
   <node pkg="rbd_pos_controller" type="rbd_pos_controller" name="rbd_pos_controller" output="screen">
     <rosparam command="load" file="$(find rbd_pos_controller)/config/default.yaml" />
   </node>
   
-  <!-- launch localization with zed camera -->
-  <!-- <include file="$(find rbd_localization)/launch/rbd_localization.launch">
-    <arg name="enable_zed" value="true"/>
-  </include> -->
-
-  <!-- launch qre highlevelcontroller -->
-  <!-- <include file="$(find qre_ros)/launch/high_level_mode.launch" />
-
-  <include file="$(find rbd_lidar)/launch/rbd_lidar.launch" /> -->
-
 </launch>
