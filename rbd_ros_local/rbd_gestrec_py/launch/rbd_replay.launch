@@ -1,0 +1,13 @@
+<launch >
+    <arg name="bag_file" default="bagname.bag" />
+
+    <!-- Play rosbag -->
+    <node pkg="rosbag" type="play" name="rosbag_play_recording"
+    launch-prefix="bash -c 'sleep 3; $0 $@' "
+    output="screen" required="true"
+    args="--clock --loop /home/juri/ROSWorkspace/BA/bags/$(arg bag_file)"/>
+
+    <!-- Launch Rviz  -->
+	<node name="rviz" pkg="rviz" type="rviz" output="screen" args="-d $(find rbd_gestrec_py)/config/lidar.rviz"/>
+
+</launch>

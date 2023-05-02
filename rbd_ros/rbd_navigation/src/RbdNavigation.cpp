@@ -84,7 +84,7 @@ void RbdNavigation::initChoreography(void){
   }
 
   // Fill array
-  lie_down_poses.push_back(zero_pose);
+  wiggle_poses.push_back(zero_pose);
   wiggle_poses.push_back(wiggle_pose_2);
   wiggle_poses.push_back(wiggle_pose_1);
   wiggle_poses.push_back(wiggle_pose_2);
@@ -111,7 +111,7 @@ void RbdNavigation::initChoreography(void){
   // Fill array
   lie_down_poses.push_back(zero_pose);
   lie_down_poses.push_back(lie_down_pose);
-  lie_down_poses.push_back(zero_pose);
+  // lie_down_poses.push_back(zero_pose);
 
 
   /* Walk */
@@ -212,31 +212,30 @@ bool RbdNavigation::serviceCallback(rbd_msgs::GeneratePath::Request& request,
 {
   if(request.command == "wiggle"){
     response.poses = wiggle_poses;
-    response.nr_of_poses = 4;
+    response.nr_of_poses = 5;
+    response.namedPoses = {"bow down", "bow up", "bow down", "bow up", "zero position"};
     return true;
 
   } else if(request.command == "walk"){
     response.poses = walk_poses;
     response.nr_of_poses = 3;
+    response.namedPoses = {"walk forward", "walk backwards", "walk home"};
     return true;
 
   } else if(request.command == "spin"){
     response.poses = spin_poses;
     response.nr_of_poses = 2;
+    response.namedPoses = {"rotate 180", "rotate back"};
     return true;
 
   }else if(request.command == "lie_down"){
     response.poses = lie_down_poses;
-    response.nr_of_poses = 3;
+    response.nr_of_poses = 2;
+    response.namedPoses = {"lie down", "stand up"};
     return true;
     
   }
-  // else if(request.command == "sit"){
-  //   response.poses = sit_poses;
-  //   response.nr_of_poses = 5;
-  //   return true;
-  // }}
-    return false;
+  return false;
 }
 
 } /* namespace */
