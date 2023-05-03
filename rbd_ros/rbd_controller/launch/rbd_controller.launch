@@ -30,7 +30,7 @@
   <!-- launch qre highlevelcontroller -->
   <include file="$(find qre_ros)/launch/high_level_mode.launch" />
 
-  <!-- Launch Lidar Node -->
+  <!-- Launch Lidar Node with Ouster -->
   <include file="$(find rbd_lidar)/launch/rbd_lidar.launch" />
 
 </launch>
