@@ -12,7 +12,9 @@
   <!-- start ZED node if enable_zed = true -->
   <group if="$(arg enable_zed)">
     <include file="$(find zed_wrapper)/launch/zed2.launch">
-      <arg name="base_frame" value="zed_base_link" />
+      <!-- <arg name="base_frame" value="zed_base_link" /> -->
+      <arg name="cam_pos_x" value="0.18" /> 
+      <arg name="cam_pos_z" value="0.04" />  
     </include>
   </group>
 

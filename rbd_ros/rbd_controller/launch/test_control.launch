@@ -3,6 +3,10 @@
   <!-- Use Wall Time -->
   <param name="use_sim_time" value="false" />
 
+  <!-- tf Transformations -->
+  <include file="$(find rbd_localization)/launch/tf.launch" />
+
+  <!-- position controller  -->
   <node pkg="rbd_pos_controller" type="rbd_pos_controller" name="rbd_pos_controller" output="screen">
     <rosparam command="load" file="$(find rbd_pos_controller)/config/default.yaml" />
   </node>
@@ -15,5 +19,8 @@
 
   <!-- launch qre highlevelcontroller -->
   <include file="$(find qre_ros)/launch/high_level_mode.launch" />
+  
+  <!-- Launch Lidar -->
+  <include file="$(find rbd_lidar)/launch/rbd_lidar.launch" />
 
 </launch>

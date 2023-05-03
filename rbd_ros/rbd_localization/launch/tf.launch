@@ -4,7 +4,5 @@
     <!-- base_link -> os_sensor -->
     <node pkg="tf" type="static_transform_publisher" name="base_link_2_os_sensor" args="0 0 0.1 0 0 0 1 base_link os_sensor 100 use_sim_time:=false" />
     
-    <!-- base_link  -> zed_base_link-->
-    <node pkg="tf" type="static_transform_publisher" name="base_link_2_zed_base_link" args="0.3 0 0.05 0 0 0 1 base_link zed_base_link 100 use_sim_time:=false" />
 
 </launch>
