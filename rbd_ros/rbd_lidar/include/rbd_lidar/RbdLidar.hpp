@@ -57,9 +57,26 @@ class RbdLidar
   void topicCallback(const sensor_msgs::PointCloud2& message);
 
   //! Private functions
-  std::vector<float> getCriticalAzimuthsDeg(uint32_t* row);
+  
+  /** surveys critical zone and finds critical azimuths.
+   *  measures, whether a point is inside the specified critical distances (e. g. "critical_distance_back_mm").
+   *  marks critical points by color
+   *  counts number of critical points and returns a vector with the critical azimuths (horizontal angles) 
+   *
+   * @param param1 one row (in total 32 per scan) of ranges in a 360° lidar scan
+   * @return Vector of all critical azimuths in "row", as float values
+   */
+  std::vector<float> findCollisions_getCritAzimuths(uint32_t* row);
+  /** prints each vector from a list of vectors
+   */
   void printList(std::list<std::vector<float> >& listOfVectors);
-  pcl::PointCloud<pcl::PointXYZRGB>::Ptr convertToPCL(const sensor_msgs::PointCloud2& inputPointCloud2);
+  /** converts "PointCloud2" (ROS) to "pcl::PointXYZI" (C++)
+   *  takes a reference to a sensor_msgs::PointCloud2 message and converts it to pcl::PointXYZI
+   *
+   * @param param1 sensor_msgs::PointCloud2 message. A full 360° scan from the lidar (x, y, z, intensity, reflectivity, metadata etc. )
+   * @return pcl::PointXYZI point cloud (C++ type: only  x, y, z, intensity)
+   */
+  pcl::PointCloud<pcl::PointXYZI>::Ptr convertToPCL(const sensor_msgs::PointCloud2& inputPointCloud2);
 
   //! ROS node handle.
   ros::NodeHandle& nodeHandle_;
@@ -100,7 +117,7 @@ class RbdLidar
   // point cloud
   uint32_t n_rows = 0, n_cols = 0;                                  // default. Are loaded when running
   uint32_t row_pcl = 0;
-  pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcl_cloud;
+  pcl::PointCloud<pcl::PointXYZI>::Ptr pcl_cloud;
   ros::Publisher pub_PC2;
 
   // auxiliary variables

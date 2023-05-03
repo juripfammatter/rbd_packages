@@ -75,7 +75,7 @@ RbdLidar::~RbdLidar()
 
 
 //////* Collision avoidance logic*//////
-std::vector<float> RbdLidar::getCriticalAzimuthsDeg(uint32_t* row){
+std::vector<float> RbdLidar::findCollisions_getCritAzimuths(uint32_t* row){
   std::vector<float> crit_Az;
 
   for(uint32_t col = 0; col < n_cols; col++){
@@ -100,11 +100,11 @@ std::vector<float> RbdLidar::getCriticalAzimuthsDeg(uint32_t* row){
         crit_Az.push_back(phi_deg); nr_crit_azimuths++;
 
         // write flag to pcl_cloud
-        pcl_cloud->points[index_pcl].r = 255; pcl_cloud->points[index_pcl].g = 0; pcl_cloud->points[index_pcl].b = 0;
+        pcl_cloud->points[index_pcl].intensity = 1;
       }
       // far enough
       else{
-        pcl_cloud->points[index_pcl].r = 0; pcl_cloud->points[index_pcl].g = 255;pcl_cloud->points[index_pcl].b = 0;
+        pcl_cloud->points[index_pcl].intensity = 0;
         pcl_cloud->points[index_pcl].x = 0; pcl_cloud->points[index_pcl].y = 0; pcl_cloud->points[index_pcl].z = 0;
       }
     }
@@ -114,11 +114,11 @@ std::vector<float> RbdLidar::getCriticalAzimuthsDeg(uint32_t* row){
       // too close
       if((d_peripendicular_mm < critical_distance_left_mm) && (range_mm > blind_zone)){
         crit_Az.push_back(phi_deg); nr_crit_azimuths++;
-        pcl_cloud->points[index_pcl].r = 255; pcl_cloud->points[index_pcl].g = 0; pcl_cloud->points[index_pcl].b = 0;
+        pcl_cloud->points[index_pcl].intensity = 1;
       }
       // far enough
       else{
-        pcl_cloud->points[index_pcl].r = 0; pcl_cloud->points[index_pcl].g = 255;pcl_cloud->points[index_pcl].b = 0;
+        pcl_cloud->points[index_pcl].intensity = 0;
         pcl_cloud->points[index_pcl].x = 0; pcl_cloud->points[index_pcl].y = 0; pcl_cloud->points[index_pcl].z = 0;
       }
     }
@@ -128,11 +128,11 @@ std::vector<float> RbdLidar::getCriticalAzimuthsDeg(uint32_t* row){
       // too close
       if((d_peripendicular_mm < critical_distance_front_mm) && (range_mm > blind_zone)){
         crit_Az.push_back(phi_deg); nr_crit_azimuths++;
-        pcl_cloud->points[index_pcl].r = 255; pcl_cloud->points[index_pcl].g = 0; pcl_cloud->points[index_pcl].b = 0;
+        pcl_cloud->points[index_pcl].intensity = 1;
       }
       // far enough
       else{
-        pcl_cloud->points[index_pcl].r = 0; pcl_cloud->points[index_pcl].g = 255;pcl_cloud->points[index_pcl].b = 0;
+        pcl_cloud->points[index_pcl].intensity = 0;
         pcl_cloud->points[index_pcl].x = 0; pcl_cloud->points[index_pcl].y = 0; pcl_cloud->points[index_pcl].z = 0;
       }
     }
@@ -142,16 +142,16 @@ std::vector<float> RbdLidar::getCriticalAzimuthsDeg(uint32_t* row){
       // too close
       if((d_peripendicular_mm < critical_distance_right_mm) && (range_mm > blind_zone)){
         crit_Az.push_back(phi_deg); nr_crit_azimuths++;
-        pcl_cloud->points[index_pcl].r = 255; pcl_cloud->points[index_pcl].g = 0; pcl_cloud->points[index_pcl].b = 0;
+        pcl_cloud->points[index_pcl].intensity = 1;
       }
       // far enough
       else{
-        pcl_cloud->points[index_pcl].r = 0; pcl_cloud->points[index_pcl].g = 255;pcl_cloud->points[index_pcl].b = 0;
+        pcl_cloud->points[index_pcl].intensity = 0;
         pcl_cloud->points[index_pcl].x = 0; pcl_cloud->points[index_pcl].y = 0; pcl_cloud->points[index_pcl].z = 0;
       }
     }
     else{
-      pcl_cloud->points[index_pcl].r = 0; pcl_cloud->points[index_pcl].g = 255;pcl_cloud->points[index_pcl].b = 0;
+      pcl_cloud->points[index_pcl].intensity = 0;
       pcl_cloud->points[index_pcl].x = 0; pcl_cloud->points[index_pcl].y = 0; pcl_cloud->points[index_pcl].z = 0;
     }
   }
@@ -172,10 +172,10 @@ void RbdLidar::printList(std::list<std::vector<float> >& listOfVectors){
   }
 }
 
-pcl::PointCloud<pcl::PointXYZRGB>::Ptr RbdLidar::convertToPCL(const sensor_msgs::PointCloud2& inputPointCloud2){
+pcl::PointCloud<pcl::PointXYZI>::Ptr RbdLidar::convertToPCL(const sensor_msgs::PointCloud2& inputPointCloud2){
   pcl::PCLPointCloud2 pcl_pc2;
   pcl_conversions::toPCL(inputPointCloud2,pcl_pc2);
-  pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcl_cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
+  pcl::PointCloud<pcl::PointXYZI>::Ptr pcl_cloud(new pcl::PointCloud<pcl::PointXYZI>);
   pcl::fromPCLPointCloud2(pcl_pc2,*pcl_cloud);
   return pcl_cloud;
 }
@@ -220,7 +220,7 @@ void RbdLidar::topicCallback(const sensor_msgs::PointCloud2& inputPointCloud2)
   std::list<std::vector<float> > ListCriticalAzimuths;
   for(uint32_t rowToCheck = 0; rowToCheck < n_rows; rowToCheck++){
     row_pcl = rowToCheck;
-    ListCriticalAzimuths.push_back(getCriticalAzimuthsDeg(ranges[rowToCheck]));
+    ListCriticalAzimuths.push_back(findCollisions_getCritAzimuths(ranges[rowToCheck]));
   }
 
   // republish modified PointCloud2
