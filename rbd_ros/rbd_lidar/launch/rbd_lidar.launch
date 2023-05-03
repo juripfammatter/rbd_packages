@@ -2,14 +2,16 @@
 
   <!-- Launch Lidar node -->
   <node pkg="rbd_lidar" type="rbd_lidar" name="rbd_lidar" output="screen">
-    <!-- load .yaml file -->
     <rosparam command="load" file="$(find rbd_lidar)/config/default.yaml" />
-
   </node>
 
+  <!-- Ouster LiDAR Sensor -->
   <include file="$(find ouster_ros)/launch/sensor.launch">
     <arg name="viz" value="false"/>
     <arg name="sensor_hostname" value="os-122222003163.local"/>
+    <arg name="timestamp_mode" value="TIME_FROM_ROS_TIME"/>  
+    <arg name="lidar_mode" value="512x10" />
+    <arg name="metadata" value="/home/unitree/catkin_ws/src/ouster-ros/config/metadata_512.json" />
   </include>
 
 </launch>

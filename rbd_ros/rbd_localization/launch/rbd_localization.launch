@@ -1,14 +1,19 @@
 <launch>
   <arg name="enable_zed" default="false"/>
+  <arg name="enable_loc_node" default="false"/>
 
-  <!-- Launch ROS Package Template Node -->
-  <node pkg="rbd_localization" type="rbd_localization" name="rbd_localization" output="screen">
-    <rosparam command="load" file="$(find rbd_localization)/config/default.yaml" />
-  </node>
+  <!-- launch ROS Localization Node -->
+  <group if="$(arg enable_loc_node)">
+    <node pkg="rbd_localization" type="rbd_localization" name="rbd_localization" output="screen">
+      <rosparam command="load" file="$(find rbd_localization)/config/default.yaml" />
+    </node>
+   </group>
 
   <!-- start ZED node if enable_zed = true -->
   <group if="$(arg enable_zed)">
-    <include file="$(find zed_wrapper)/launch/zed2.launch"/>
+    <include file="$(find zed_wrapper)/launch/zed2.launch">
+      <arg name="base_frame" value="zed_base_link" />
+    </include>
   </group>
 
 

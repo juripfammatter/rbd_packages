@@ -18,7 +18,7 @@ RbdPosController::RbdPosController(ros::NodeHandle& nodeHandle)
 
   // Create publishers
   cmdVelPublisher_ = nodeHandle_.advertise<geometry_msgs::Twist>(cmd_vel_pub_topic,1);
-  statusPublisher_ = nodeHandle_.advertise<std_msgs::String>(status_pub_topic,1);
+  statusPublisher_ = nodeHandle_.advertise<std_msgs::String>(status_pub_topic,1); 
 
   // Create service servers/clients
   emServiceServer_ = nodeHandle_.advertiseService(emergency_stop_service,&RbdPosController::emStopCallback, this);

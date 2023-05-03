@@ -1,0 +1,11 @@
+<launch>
+    <arg name="bag_name" default="default_bag_name.bag" />
+
+    <!-- enable sim-time -->
+    <param name="use_sim_time" value="false" />
+
+    <!-- record -->
+     <node name="bag_record" pkg="rosbag" type="record"
+            args="-O /home/unitree/catkin_ws/bags/$(arg bag_name) /tf /rbd_lidar/output_PC2_flagged /ouster/points" />
+
+</launch>

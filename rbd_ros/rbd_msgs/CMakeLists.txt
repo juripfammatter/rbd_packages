@@ -8,9 +8,10 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
 )
 
-# add_message_files(
-#   FILES
-#   )
+add_message_files(
+  FILES
+  NamedPoses.msg
+  )
 
 # Generate services in the 'srv' folder
 add_service_files(

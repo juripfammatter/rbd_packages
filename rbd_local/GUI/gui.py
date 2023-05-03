@@ -16,7 +16,7 @@ class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
         # initialize rosbridge
-        #self.init_rosbridge()
+        self.init_rosbridge()
 
         # GUI
         self.em_stop = True
@@ -101,33 +101,33 @@ class App(customtkinter.CTk):
                                             width=600)
         
         #  Queue
-        queue_1 = customtkinter.CTkLabel(master=right_col, 
+        self.queue_1 = customtkinter.CTkLabel(master=right_col, 
                                          justify=customtkinter.LEFT, 
                                          font=text_font, 
                                          text = "move to (1.0, 0.0)",
                                          width=500)
         
-        queue_2 = customtkinter.CTkLabel(master=right_col, 
+        self.queue_2 = customtkinter.CTkLabel(master=right_col, 
                                          justify=customtkinter.LEFT, 
                                          font=text_font, 
                                          text = "move to (-1.0, 0.0)")
         
-        queue_3 = customtkinter.CTkLabel(master=right_col, 
+        self.queue_3 = customtkinter.CTkLabel(master=right_col, 
                                          justify=customtkinter.LEFT, 
                                          font=text_font, 
                                          text = "move to (0.0, 0.0)")
         
-        queue_4 = customtkinter.CTkLabel(master=right_col, 
+        self.queue_4 = customtkinter.CTkLabel(master=right_col, 
                                          justify=customtkinter.LEFT, 
                                          font=text_font, 
                                          text = "rotate to -180°")
         
-        queue_5 = customtkinter.CTkLabel(master=right_col, 
+        self.queue_5 = customtkinter.CTkLabel(master=right_col, 
                                          justify=customtkinter.LEFT, 
                                          font=text_font, 
                                          text = "rotate to 0°")
         
-        queue_6 = customtkinter.CTkLabel(master=right_col, 
+        self.queue_6 = customtkinter.CTkLabel(master=right_col, 
                                          justify=customtkinter.LEFT, 
                                          font=text_font, 
                                          text = "empty:")
@@ -149,11 +149,11 @@ class App(customtkinter.CTk):
         label_2.grid(row=2, column=0, padx=20, pady = 50)
         self.status_text.grid(row=3, column=0, padx=20, pady = 50)
 
-        queue_1.grid(row=4, column=0, padx=20, pady = 40)
-        queue_2.grid(row=3, column=0, padx=20, pady = 40)
-        queue_3.grid(row=2, column=0, padx=20, pady = 40)
-        queue_4.grid(row=1, column=0, padx=20, pady = 40)
-        queue_5.grid(row=0, column=0, padx=20, pady = 40)
+        self.queue_1.grid(row=4, column=0, padx=20, pady = 40)
+        self.queue_2.grid(row=3, column=0, padx=20, pady = 40)
+        self.queue_3.grid(row=2, column=0, padx=20, pady = 40)
+        self.queue_4.grid(row=1, column=0, padx=20, pady = 40)
+        self.queue_5.grid(row=0, column=0, padx=20, pady = 40)
         
         
         
@@ -181,8 +181,13 @@ class App(customtkinter.CTk):
         self.request = roslibpy.ServiceRequest()
 
         # status listener
-        self.listener = roslibpy.Topic(self.client, '/rbd_status', 'std_msgs/String')   
-        self.listener.subscribe(self.status_callback)
+        self.status_listener = roslibpy.Topic(self.client, '/rbd_status', 'std_msgs/String')   
+        self.status_listener.subscribe(self.status_callback)
+
+        # status listener
+        self.pose_listener = roslibpy.Topic(self.client, '/named_poses', 'rbd_msgs/NamedPoses')   
+        self.pose_listener.subscribe(self.pose_callback)
+
 
     def status_callback(self, message):
         self.status = message['data']
@@ -194,6 +199,24 @@ class App(customtkinter.CTk):
         else:
             self.status_text.configure(text = self.status, fg_color = "#505080")
             self.em_button.configure(text = "Enable")
+
+
+    def pose_callback(self, message):
+        # print(message['namedPoses'])
+        
+        queue_text = ['','','','','']
+        for i in range(0, len(message['namedPoses'])):
+            queue_text[i] = message['namedPoses'][i]
+        # print(queue_text)
+        
+        # configure labels
+        self.queue_1.configure(text = queue_text[0])
+        self.queue_2.configure(text = queue_text[1])
+        self.queue_3.configure(text = queue_text[2])
+        self.queue_4.configure(text = queue_text[3])
+        self.queue_5.configure(text = queue_text[4])
+
+
 
     def em_callback(self):
         
@@ -212,6 +235,7 @@ class App(customtkinter.CTk):
             # call service
             self.request['data'] = True
             self.service.call(self.request, callback= self.cb, timeout= 1)
+
 
     def run_script(self):
         # Replace "path/to/script.sh" with the actual path to your Bash script

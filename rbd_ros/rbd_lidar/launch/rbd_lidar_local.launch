@@ -2,9 +2,8 @@
 
   <!-- Launch Lidar node -->
   <node pkg="rbd_lidar" type="rbd_lidar" name="rbd_lidar" output="screen">
-    <!-- load .yaml file -->
-    <rosparam command="load" file="$(find rbd_lidar)/config/default.yaml" />
-
+      <rosparam command="load" file="$(find rbd_lidar)/config/default.yaml" />
+  
   </node>
 
 </launch>

@@ -1,4 +1,5 @@
 status_subscriber_topic: /rbd_status
+named_pose_topic: /named_poses
 path_generation_service: /generate_path
 set_postion_service: /set_position
 set_mode_service: /set_mode
