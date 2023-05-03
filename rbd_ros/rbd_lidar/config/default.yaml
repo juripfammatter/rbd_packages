@@ -1,3 +1,6 @@
 subscriber_topic: "/ouster/points"
-critical_dist_1_3: 500
-critical_dist_2_4: 300
+critical_dist_back: 550
+critical_dist_left: 330
+critical_dist_front: 700
+critical_dist_right: 330
+lim_rows_back: 2

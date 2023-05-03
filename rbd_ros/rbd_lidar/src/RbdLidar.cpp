@@ -1,9 +1,21 @@
 #include "rbd_lidar/RbdLidar.hpp"
 
 #define deg_to_rad(deg) (deg)*deg_to_rad_factor
-
+#define rad_to_deg(rad) (rad)*rad_to_deg_factor
 
 namespace rbd_lidar {
+
+bool RbdLidar::readParameters()
+{
+  // get from .yaml file and save it into variables
+  if (!nodeHandle_.getParam("subscriber_topic", subscriberTopic_) ||   
+      !nodeHandle_.getParam("critical_dist_back", critical_distance_back_mm_load) ||
+      !nodeHandle_.getParam("critical_dist_left", critical_distance_left_mm_load) ||
+      !nodeHandle_.getParam("critical_dist_front", critical_distance_front_mm_load) ||
+      !nodeHandle_.getParam("critical_dist_right", critical_distance_right_mm_load) ||
+      !nodeHandle_.getParam("lim_rows_back", lim_rows_back_load)) return false;
+  return true;
+}
 
 RbdLidar::RbdLidar(ros::NodeHandle& nodeHandle)
     : nodeHandle_(nodeHandle)
@@ -15,126 +27,132 @@ RbdLidar::RbdLidar(ros::NodeHandle& nodeHandle)
   }
   
   // check and set distance parameters
-  if((critical_distance_sect1_sect3_mm_load < 0) || (critical_distance_sect2_sect4_mm < 0)){
-    ROS_ERROR("Invalid (negative) value for critical_distance_sect1_sect3_mm_load or critical_distance_sect2_sect4_mm.");
+  if((critical_distance_back_mm_load < 0) || (critical_distance_left_mm_load < 0) ||
+     (critical_distance_front_mm_load < 0)|| (critical_distance_right_mm_load < 0) ||
+     (lim_rows_back <0) || (lim_rows_back > 32)){
+    ROS_ERROR("Invalid (negative) value for critical distance or invalid value for lim_rows_back.");
     ros::requestShutdown();
   }
   else{
-    critical_distance_sect1_sect3_mm = critical_distance_sect1_sect3_mm_load;
-    critical_distance_sect2_sect4_mm = critical_distance_sect2_sect4_mm_load;
+    critical_distance_back_mm = critical_distance_back_mm_load;
+    critical_distance_left_mm = critical_distance_left_mm_load;
+    critical_distance_front_mm = critical_distance_front_mm_load;
+    critical_distance_right_mm = critical_distance_right_mm_load;
+    lim_rows_back = lim_rows_back_load;
   }
   
-  // handle subscription and service
-  subscriber_ = nodeHandle_.subscribe(subscriberTopic_, 1,&RbdLidar::topicCallback, this);
-  collisionClient = nodeHandle_.serviceClient<std_srvs::SetBool>("/collision");
-
   // parameter info
   ROS_INFO("Subscribed to topic: %s", subscriberTopic_.c_str());
-  ROS_INFO("Loaded critical_dist_1_3 (back, front): %d mm", critical_distance_sect1_sect3_mm);
-  ROS_INFO("Loaded critical_dist_2_4 (left, right): %d mm", critical_distance_sect2_sect4_mm);
+  ROS_INFO("Loaded critical_dist_1 (back): %.1f mm", critical_distance_back_mm);
+  ROS_INFO("Loaded critical_dist_2 (left when looking from back): %.1f mm", critical_distance_left_mm);
+  ROS_INFO("Loaded critical_dist_3 (front): %.1f mm", critical_distance_front_mm);
+  ROS_INFO("Loaded critical_dist_4 (right when looking from back): %.1f mm", critical_distance_right_mm);
+  ROS_INFO("Loaded lim_rows_back: first %d rows", lim_rows_back);
   ROS_INFO("Successfully launched node.");
 
   // initialize angles for collision detection
-  alpha = atan2((w_dog/2), (l_dog/2))* 180/M_PI;
-  beta = atan2((l_dog/2), (w_dog/2))* 180/M_PI;
-  phi1 = alpha;
-  phi2 = phi1 + 2*beta;
-  phi3 = phi2 + 2*alpha;
-  phi4 = phi3 + 2*beta;
+  alpha_deg = rad_to_deg(atan(critical_distance_left_mm/critical_distance_back_mm));
+  beta_deg = rad_to_deg(atan(critical_distance_left_mm/critical_distance_front_mm));
+  gamma_deg = rad_to_deg(atan(critical_distance_right_mm/critical_distance_front_mm));
+  delta_deg = rad_to_deg(atan(critical_distance_right_mm/critical_distance_back_mm));
+  if((alpha_deg<0) || (beta_deg<0) || (gamma_deg<0) || (delta_deg<0)) ROS_ERROR("Invalid section angle");
 
+  phi1_deg = alpha_deg;
+  phi2_deg = 180 - beta_deg;
+  phi3_deg = 180 + gamma_deg;
+  phi4_deg = 360 - delta_deg;
+  ROS_INFO("angles: phi1 %0.1f; phi2 %0.1f; phi3 %0.1f; phi4 %0.1f;", phi1_deg,phi2_deg,phi3_deg,phi4_deg);
 
-  pub_PC2 = nodeHandle_.advertise<sensor_msgs::PointCloud2>("output_PC2_flagged", 1);
-
-  if(abs(((((float)w_dog/2)/((float)l_dog/2)*((float)critical_distance_sect1_sect3_mm)) - critical_distance_sect2_sect4_mm)) >= 20){
-    ROS_WARN("Collision zones do not meet in edge of dog");
-  }
-
-
+  // handle subscription, service, adversitement
+  subscriber_ = nodeHandle_.subscribe(subscriberTopic_, 1,&RbdLidar::topicCallback, this);
+  collisionClient = nodeHandle_.serviceClient<std_srvs::SetBool>("/collision");
+  pub_PC2 = nodeHandle_.advertise<sensor_msgs::PointCloud2>("output_PC2_flagged", 1);  
 }
 
 RbdLidar::~RbdLidar()
 {
 }
 
-bool RbdLidar::readParameters()
-{
-  // get from .yaml file and save it into variables
-  if (!nodeHandle_.getParam("subscriber_topic", subscriberTopic_) ||   
-      !nodeHandle_.getParam("critical_dist_1_3", critical_distance_sect1_sect3_mm_load) ||
-      !nodeHandle_.getParam("critical_dist_2_4", critical_distance_sect2_sect4_mm_load)) return false;
-  return true;
-}
-
-
 
 //////* Collision avoidance logic*//////
-///* Auxiliary Functions*///
-float RbdLidar::getAzimuthDegFromCol(uint32_t col){
-  if((col>(n_cols-1)) || (col<0))    ROS_ERROR("Horizontal index out of bounds. Must be in interval [0, n_cols]");
-
-  return 360*((float(col))/float(n_cols-1));
-}
-
 std::vector<float> RbdLidar::getCriticalAzimuthsDeg(uint32_t* row){
   std::vector<float> crit_Az;
 
   for(uint32_t col = 0; col < n_cols; col++){
-    float phi_deg = getAzimuthDegFromCol(col);
+    // angles in space for current point
+    float phi_deg = 360*((float(col))/float(n_cols-1));
     float row_normed = abs(row_pcl-15.5);
-    float theta_deg = row_normed*(22.5/15.5);   // 22.5 ° is max angle
-
-    float range_mm = row[col], d_peripendicular_mm;
+    float theta_deg = row_normed*(22.5/15.5);     // 22.5 ° is max angle
+    // range and index
+    float range_mm = row[col], d_peripendicular_mm = 0;
     uint32_t index_pcl = row_pcl*n_cols + col;
+
 
     // invalid azimuths
     if((phi_deg < 0) || (phi_deg > 360)){
       ROS_ERROR("Invalid azimuth");
     }
-    // Section 1 (back) and 3 (front)
-    else if(((phi_deg <= phi1) || (phi_deg > phi4)) || ((phi_deg > phi2) && (phi_deg <= phi3))){
+    // section 1 (back)
+    else if(((phi_deg <= phi1_deg) || (phi_deg > phi4_deg)) && (row_pcl < lim_rows_back)){
       d_peripendicular_mm = range_mm*abs(cos(deg_to_rad(phi_deg)))*abs(cos(deg_to_rad(theta_deg)));
-      // critically close
-      if((d_peripendicular_mm < critical_distance_sect1_sect3_mm) && (d_peripendicular_mm > blind_zone)){
-        crit_Az.push_back(phi_deg);
-        nr_crit_azimuths++;
+      // too close
+      if((d_peripendicular_mm < critical_distance_back_mm) && (range_mm > blind_zone)){
+        crit_Az.push_back(phi_deg); nr_crit_azimuths++;
 
         // write flag to pcl_cloud
-        pcl_cloud->points[index_pcl].r = 255;
-        pcl_cloud->points[index_pcl].g = 0;
-        pcl_cloud->points[index_pcl].b = 0;
+        pcl_cloud->points[index_pcl].r = 255; pcl_cloud->points[index_pcl].g = 0; pcl_cloud->points[index_pcl].b = 0;
       }
       // far enough
       else{
-        pcl_cloud->points[index_pcl].r = 0;
-        pcl_cloud->points[index_pcl].g = 255;
-        pcl_cloud->points[index_pcl].b = 0;
-        pcl_cloud->points[index_pcl].x = 0;
-        pcl_cloud->points[index_pcl].y = 0;
-        pcl_cloud->points[index_pcl].z = 0;
+        pcl_cloud->points[index_pcl].r = 0; pcl_cloud->points[index_pcl].g = 255;pcl_cloud->points[index_pcl].b = 0;
+        pcl_cloud->points[index_pcl].x = 0; pcl_cloud->points[index_pcl].y = 0; pcl_cloud->points[index_pcl].z = 0;
       }
     }
-    // Section 2 (left side when looking from behind) and 4 (right side " )
-    else if(((phi_deg > phi1) && (phi_deg <= phi2)) || ((phi_deg > phi3) && (phi_deg < phi4))){
+    // section 2 (left when looking from back)
+    else if((phi_deg > phi1_deg) && (phi_deg <= phi2_deg)){
       d_peripendicular_mm = range_mm*abs(sin(deg_to_rad(phi_deg)))*abs(cos(deg_to_rad(theta_deg)));
-      // critically close
-      if((d_peripendicular_mm < critical_distance_sect2_sect4_mm) && (d_peripendicular_mm > blind_zone)){
-        crit_Az.push_back(phi_deg);
-        nr_crit_azimuths++;
-
-        // write flag to pcl_cloud
-        pcl_cloud->points[index_pcl].r = 255;
-        pcl_cloud->points[index_pcl].g = 0;
-        pcl_cloud->points[index_pcl].b = 0;
+      // too close
+      if((d_peripendicular_mm < critical_distance_left_mm) && (range_mm > blind_zone)){
+        crit_Az.push_back(phi_deg); nr_crit_azimuths++;
+        pcl_cloud->points[index_pcl].r = 255; pcl_cloud->points[index_pcl].g = 0; pcl_cloud->points[index_pcl].b = 0;
       }
       // far enough
       else{
-        pcl_cloud->points[index_pcl].r = 0;
-        pcl_cloud->points[index_pcl].g = 255;
-        pcl_cloud->points[index_pcl].b = 0;
-        pcl_cloud->points[index_pcl].x = 0;
-        pcl_cloud->points[index_pcl].y = 0;
-        pcl_cloud->points[index_pcl].z = 0;
+        pcl_cloud->points[index_pcl].r = 0; pcl_cloud->points[index_pcl].g = 255;pcl_cloud->points[index_pcl].b = 0;
+        pcl_cloud->points[index_pcl].x = 0; pcl_cloud->points[index_pcl].y = 0; pcl_cloud->points[index_pcl].z = 0;
       }
+    }
+    // section 3  (front)
+    else if((phi_deg > phi2_deg) && (phi_deg <= phi3_deg)){
+      d_peripendicular_mm = range_mm*abs(cos(deg_to_rad(phi_deg)))*abs(cos(deg_to_rad(theta_deg)));
+      // too close
+      if((d_peripendicular_mm < critical_distance_front_mm) && (range_mm > blind_zone)){
+        crit_Az.push_back(phi_deg); nr_crit_azimuths++;
+        pcl_cloud->points[index_pcl].r = 255; pcl_cloud->points[index_pcl].g = 0; pcl_cloud->points[index_pcl].b = 0;
+      }
+      // far enough
+      else{
+        pcl_cloud->points[index_pcl].r = 0; pcl_cloud->points[index_pcl].g = 255;pcl_cloud->points[index_pcl].b = 0;
+        pcl_cloud->points[index_pcl].x = 0; pcl_cloud->points[index_pcl].y = 0; pcl_cloud->points[index_pcl].z = 0;
+      }
+    }
+    // section 4 (right when looking from back)
+    else if((phi_deg > phi3_deg) && (phi_deg <= phi4_deg)){
+      d_peripendicular_mm = range_mm*abs(sin(deg_to_rad(phi_deg)))*abs(cos(deg_to_rad(theta_deg)));
+      // too close
+      if((d_peripendicular_mm < critical_distance_right_mm) && (range_mm > blind_zone)){
+        crit_Az.push_back(phi_deg); nr_crit_azimuths++;
+        pcl_cloud->points[index_pcl].r = 255; pcl_cloud->points[index_pcl].g = 0; pcl_cloud->points[index_pcl].b = 0;
+      }
+      // far enough
+      else{
+        pcl_cloud->points[index_pcl].r = 0; pcl_cloud->points[index_pcl].g = 255;pcl_cloud->points[index_pcl].b = 0;
+        pcl_cloud->points[index_pcl].x = 0; pcl_cloud->points[index_pcl].y = 0; pcl_cloud->points[index_pcl].z = 0;
+      }
+    }
+    else{
+      pcl_cloud->points[index_pcl].r = 0; pcl_cloud->points[index_pcl].g = 255;pcl_cloud->points[index_pcl].b = 0;
+      pcl_cloud->points[index_pcl].x = 0; pcl_cloud->points[index_pcl].y = 0; pcl_cloud->points[index_pcl].z = 0;
     }
   }
   return crit_Az;
@@ -168,23 +186,21 @@ pcl::PointCloud<pcl::PointXYZRGB>::Ptr RbdLidar::convertToPCL(const sensor_msgs:
 void RbdLidar::topicCallback(const sensor_msgs::PointCloud2& inputPointCloud2)
 {
   // init
-  nr_crit_azimuths = 0;                 // reset counter for critical azimuths
+  nr_crit_azimuths = 0;                                       // reset counter for critical azimuths
   std::string file_path = "/home/juri/catkin_ws/src/rbd_lidar/src/csv/range_list.csv";  std::ofstream myFile(file_path);  myFile << "range\n";    // init file to write coordinates of last message to range_list.csv
-  collision = true;                     // default: collision warning
+  collision = true;                                           // default: collision warning
+  n_rows = inputPointCloud2.height, n_cols = inputPointCloud2.width;
 
   // convert PointCloud2& to pcl and generate outputPointCloud2
   pcl_cloud = convertToPCL(inputPointCloud2);
   sensor_msgs::PointCloud2::Ptr outputPointCloud2(new sensor_msgs::PointCloud2);
 
-
   //! get range for each point and store it in 2D array
-  n_rows = inputPointCloud2.height, n_cols = inputPointCloud2.width;
   uint32_t ranges[n_rows][n_cols];
 
   for(uint32_t row = 0; row < n_rows; row++){                 // row
-    //float x_pcl,y_pcl,z_pcl;
     for(uint32_t col = 0; col < n_cols; col++){               // column
-      // get index of range
+      // get index of range entry
       uint32_t arrayPos =  row*inputPointCloud2.row_step + col*inputPointCloud2.point_step;
       uint32_t arrayPosRange = arrayPos + inputPointCloud2.fields[8].offset;       // range is at position 8
 
