@@ -111,7 +111,6 @@ void RbdNavigation::initChoreography(void){
   /* Fill array (reverse order / pop_back) */
   lie_down_poses.push_back(zero_pose);
   lie_down_poses.push_back(lie_down_pose);
-  // lie_down_poses.push_back(zero_pose);
 
 
   /* Walk */
@@ -123,17 +122,6 @@ void RbdNavigation::initChoreography(void){
 
   try{
     tf::Quaternion q;
-    // q.setRPY(0.0, 0.0, 0.46);
-    // tf_walk_1.setOrigin(tf::Vector3(0.5, 0.25, 0.0));
-    // tf_walk_1.setRotation(q);
-
-    // q.setRPY(0.0, 0.0, -1.57);
-    // tf_walk_2.setOrigin(tf::Vector3(0.5, -0.25, 0.0));
-    // tf_walk_2.setRotation(q);
-
-    // q.setRPY(0.0, 0.0, 3.14);
-    // tf_walk_3.setOrigin(tf::Vector3(-0.5, 0.0, 0.0));
-    // tf_walk_3.setRotation(q);
 
     q.setRPY(0.0, 0.0, 0.0);
     tf_walk_1.setOrigin(tf::Vector3(1.0, 0.0, 0.0));
@@ -163,11 +151,8 @@ void RbdNavigation::initChoreography(void){
 
   /* Fill array (reverse order / pop_back) */
   walk_poses.push_back(zero_pose);
-  //walk_poses.push_back(walk_pose_4);
-  // walk_poses.push_back(walk_pose_3);
   walk_poses.push_back(walk_pose_2);
   walk_poses.push_back(walk_pose_1);
-  // walk_poses.push_back(zero_pose);
 
 
 
@@ -197,7 +182,6 @@ void RbdNavigation::initChoreography(void){
   spin_poses.push_back(zero_pose);
   spin_poses.push_back(spin_pose_2);
   spin_poses.push_back(spin_pose_1);
-  // spin_poses.push_back(zero_pose);
 
 
 }
