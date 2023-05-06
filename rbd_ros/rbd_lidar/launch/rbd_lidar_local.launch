@@ -6,5 +6,8 @@
   
   </node>
 
+  <!-- pointcloud_to_laserscan -->
+  <include file="$(find pointcloud_to_laserscan)/launch/rbd_pointcloud_to_laserscan.launch">
+  </include>
 
 </launch>
