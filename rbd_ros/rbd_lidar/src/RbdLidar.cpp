@@ -66,7 +66,8 @@ RbdLidar::RbdLidar(ros::NodeHandle& nodeHandle)
   // handle subscription, service, adversitement
   subscriber_ = nodeHandle_.subscribe(subscriberTopic_, 1,&RbdLidar::topicCallback, this);
   collisionClient = nodeHandle_.serviceClient<std_srvs::SetBool>("/collision");
-  pub_PC2 = nodeHandle_.advertise<sensor_msgs::PointCloud2>("output_PC2_flagged", 1);  
+  pub_PC2 = nodeHandle_.advertise<sensor_msgs::PointCloud2>("output_PC2_flagged", 1); 
+  pub_PC2_scan = nodeHandle_.advertise<sensor_msgs::PointCloud2>("output_PC2_scan", 1); 
 }
 
 RbdLidar::~RbdLidar()
@@ -76,8 +77,21 @@ RbdLidar::~RbdLidar()
 
 //////* Collision avoidance logic*//////
 std::vector<float> RbdLidar::findCollisions_getCritAzimuths(uint32_t* row){
-  std::vector<float> crit_Az;
+  // PointXYZI cloud for scan
+  pcl::PointXYZI newPoint;
+  if(row_pcl == 15){
+    for(uint32_t col = 0; col < n_cols; col++){
+      uint32_t index_pcl = row_pcl*n_cols + col;
 
+      newPoint.x = pcl_cloud->points[index_pcl].x;
+      newPoint.y = pcl_cloud->points[index_pcl].y;
+      newPoint.z = pcl_cloud->points[index_pcl].z;
+      pcl_cloud_scan->points.push_back(newPoint);
+    }
+  }
+
+  // handle critical zone
+  std::vector<float> crit_Az;
   for(uint32_t col = 0; col < n_cols; col++){
     // angles in space for current point
     float phi_deg = 360*((float(col))/float(n_cols-1));
@@ -195,6 +209,11 @@ void RbdLidar::topicCallback(const sensor_msgs::PointCloud2& inputPointCloud2)
   pcl_cloud = convertToPCL(inputPointCloud2);
   sensor_msgs::PointCloud2::Ptr outputPointCloud2(new sensor_msgs::PointCloud2);
 
+  // PointCloud2& for SLAM scan
+  pcl_cloud_scan = convertToPCL(inputPointCloud2);
+  pcl_cloud_scan->clear();
+  sensor_msgs::PointCloud2::Ptr scanPointCloud2(new sensor_msgs::PointCloud2);
+
   //! get range for each point and store it in 2D array
   uint32_t ranges[n_rows][n_cols];
 
@@ -226,6 +245,10 @@ void RbdLidar::topicCallback(const sensor_msgs::PointCloud2& inputPointCloud2)
   // republish modified PointCloud2
   pcl::toROSMsg(*pcl_cloud, *outputPointCloud2);
   pub_PC2.publish(outputPointCloud2);
+
+  // publish PointCloud2 for scan
+  pcl::toROSMsg(*pcl_cloud_scan, *scanPointCloud2);
+  pub_PC2_scan.publish(scanPointCloud2);
 
   // collision?
   if(nr_crit_azimuths < threshold_crit_azimuths){

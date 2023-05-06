@@ -118,7 +118,9 @@ class RbdLidar
   uint32_t n_rows = 0, n_cols = 0;                                  // default. Are loaded when running
   uint32_t row_pcl = 0;
   pcl::PointCloud<pcl::PointXYZI>::Ptr pcl_cloud;
+  pcl::PointCloud<pcl::PointXYZI>::Ptr pcl_cloud_scan;
   ros::Publisher pub_PC2;
+  ros::Publisher pub_PC2_scan;
 
   // auxiliary variables
   double deg_to_rad_factor = M_PI/180.0;
