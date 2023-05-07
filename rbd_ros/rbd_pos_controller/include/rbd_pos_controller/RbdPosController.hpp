@@ -8,6 +8,7 @@
 #include <std_srvs/SetBool.h>
 #include <rbd_msgs/SetPosition.h>
 #include <tf/tf.h>
+#include <tf/transform_listener.h>
 #include <qre_msgs/SetBodyPose.h>
 #include <cmath>
 
@@ -52,13 +53,13 @@ class RbdPosController
   
   //void updateGain(void);
 
-  /**
-   * @brief envelope function to minimize large side forces
-   * 
-   * @param vx x velocity
-   * @param vy y velocity
-   */
-  void envelope(double &vx, double &vy);
+  // /**
+  //  * @brief envelope function to minimize large side forces
+  //  * 
+  //  * @param vx x velocity
+  //  * @param vy y velocity
+  //  */
+  // void envelope(double &vx, double &vy);
 
   /**
    * @brief limits angle to the interval [-pi, pi]
@@ -73,7 +74,11 @@ class RbdPosController
    * @param pose geometry_msgs::Pose
    * @param rpy std::vector<double> RPY
    */
-  void quat2eul(const geometry_msgs::Pose& pose,  std::vector<double> &rpy);
+  void quat2eul(const geometry_msgs::Quaternion& orient,  std::vector<double> &rpy);
+
+  /** @brief returns @param transform  from @param source_frame to @param target_frame 
+   */
+  void getTransform(tf::StampedTransform &transform, const std::string source_frame, const std::string target_frame);
 
   /**
    * ROS topic callback method.
@@ -135,6 +140,9 @@ class RbdPosController
   geometry_msgs::Twist vel_message;
   geometry_msgs::Twist zero_twist;
   geometry_msgs::Point goal_position;
+
+  /* TF Listener */
+  tf::TransformListener tf_listener_;
 
   /* Global variables */
   double goal_roll = 0, goal_pitch = 0, goal_yaw = 0;

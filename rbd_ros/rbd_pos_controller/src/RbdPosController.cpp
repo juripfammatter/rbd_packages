@@ -72,15 +72,15 @@ double RbdPosController::saturate(double value, double lower_limit, double upper
   return sat_value;
 }
 
-void RbdPosController::envelope(double &vx, double &vy){
+// void RbdPosController::envelope(double &vx, double &vy){
 
-    double vxn = pow(vx,3)/(pow(vx,2)+pow(vy,2));
-    double vyn = pow(vy,3)/(pow(vx,2)+pow(vy,2));
+//     double vxn = pow(vx,3)/(pow(vx,2)+pow(vy,2));
+//     double vyn = pow(vy,3)/(pow(vx,2)+pow(vy,2));
 
-    vx = vxn;
-    vy = vyn;
+//     vx = vxn;
+//     vy = vyn;
 
-}
+// }
 
 // void RbdPosController::updateGain(void)
 // {
@@ -106,10 +106,11 @@ void RbdPosController::limitToPi(double& angle){
   }
 }
 
-void RbdPosController::quat2eul(const geometry_msgs::Pose& pose, std::vector<double> &rpy){
+// TBD change to tf::Quaternion
+void RbdPosController::quat2eul(const geometry_msgs::Quaternion& orient, std::vector<double> &rpy){
 
   tf::Quaternion tf_orientation;
-  tf_orientation.setValue(pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w);
+  tf_orientation.setValue(orient.x, orient.y, orient.z, orient.w); // redundant
   tf::Matrix3x3 tf_m(tf_orientation);
 
   tf_m.getRPY(rpy[0], rpy[1], rpy[2]);
@@ -120,12 +121,36 @@ void RbdPosController::quat2eul(const geometry_msgs::Pose& pose, std::vector<dou
 
 }
 
+void RbdPosController::getTransform(tf::StampedTransform &transform, const std::string source_frame, const std::string target_frame){
+	try
+	{
+		tf_listener_.lookupTransform(target_frame, source_frame, ros::Time(0), transform);
+	}
+	catch(tf::TransformException &ex)
+	{
+		ROS_WARN("%s", ex.what());
+		ros::Duration(1.0).sleep();
+	}
+}
 
 void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& pose)
 {
+  /******** Determine pose based on base_link to map transformation  ********/
+  /* get current pose in respect to map frame*/
+	tf::StampedTransform tf_map;
+
+	getTransform(tf_map, "/base_link", "/map");         // the transformation from map to base_link descripes the robots pose in respect to the map frame
+  tf::Vector3 pos_map = tf_map.getOrigin();
+  tf::Quaternion rot_map = tf_map.getRotation();
+  ROS_INFO_STREAM_THROTTLE(0.2, "Position of tf: " << rot_map);
+  ROS_INFO_STREAM_THROTTLE(0.2, "Orientation of tf: " << rot_map);
+
+  // TODO: switch out pose for controller if map trandformation works
+
+  /************* Determine pose based on pose from camera *****************/
   /* Get yaw angle of actual pose */
   std::vector<double> pose_rpy = std::vector<double> (3);
-  quat2eul(pose.pose,pose_rpy);
+  quat2eul(pose.pose.orientation,pose_rpy);
 
   /* Calculate position error */
   double e_x = goal_position.x-pose.pose.position.x;
