@@ -1,4 +1,4 @@
-subscriber_topic: /zed2/zed_node/pose #/actual_position
+subscriber_topic: /zed2/zed_node/pose
 cmd_vel_publisher_topic: /cmd_vel
 status_publisher_topic: /rbd_status
 body_pose_service: /set_body_pose
