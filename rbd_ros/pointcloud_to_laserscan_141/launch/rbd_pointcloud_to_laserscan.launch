@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+
+<launch>
+    <!-- Use Sim Time (true) or Wall Time (false)-->
+    <param name="use_sim_time" value="false" />
+
+    <!-- run pointcloud_to_laserscan node -->
+    <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan">
+
+        <remap from="cloud_in" to="/rbd_lidar/output_PC2_scan"/>
+        <remap from="scan" to="ouster/scan"/>
+        <rosparam>
+            target_frame: os_lidar # Leave disabled to output scan in pointcloud frame
+            transform_tolerance: 0.01
+            min_height: -0.1
+            max_height: 0.1
+
+            angle_min: -3.14159256 # -M_PI
+            angle_max: 3.14159256 # M_PI
+            angle_increment: 0.00122718 # 2*M_PI/512.0
+            scan_time: 0.1
+            range_min: 0.25
+            range_max: 8.0
+            use_inf: true
+            inf_epsilon: 1.0
+
+            # Concurrency level, affects number of pointclouds queued for processing and number of threads used
+            # 0 : Detect number of cores
+            # 1 : Single threaded
+            # 2->inf : Parallelism level
+            concurrency_level: 1
+        </rosparam>
+
+    </node>
+
+</launch>

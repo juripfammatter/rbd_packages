@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <std_srvs/SetBool.h>
+#include <std_msgs/String.h>
 
 // PCL
 #include <pcl_conversions/pcl_conversions.h>
@@ -55,6 +56,7 @@ class RbdLidar
    * @param message the received message.
    */
   void topicCallback(const sensor_msgs::PointCloud2& message);
+  void statusTopicCallback(const std_msgs::String& message);
 
   //! Private functions
   
@@ -83,6 +85,7 @@ class RbdLidar
 
   //! ROS topic subscriber.
   ros::Subscriber subscriber_;
+  ros::Subscriber subscriber_status;
 
   //! ROS client for collision avoidance service
   ros::ServiceClient collisionClient;
@@ -118,7 +121,12 @@ class RbdLidar
   uint32_t n_rows = 0, n_cols = 0;                                  // default. Are loaded when running
   uint32_t row_pcl = 0;
   pcl::PointCloud<pcl::PointXYZI>::Ptr pcl_cloud;
+  pcl::PointCloud<pcl::PointXYZI>::Ptr pcl_cloud_scan;
   ros::Publisher pub_PC2;
+  ros::Publisher pub_PC2_scan;
+
+  // SLAM
+  bool rbd_is_running = false;
 
   // auxiliary variables
   double deg_to_rad_factor = M_PI/180.0;

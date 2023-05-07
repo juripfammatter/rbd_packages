@@ -1,9 +1,13 @@
 <launch>
 
-  <!-- Launch Lidar node -->
+  <!-- launch lidar node -->
   <node pkg="rbd_lidar" type="rbd_lidar" name="rbd_lidar" output="screen">
       <rosparam command="load" file="$(find rbd_lidar)/config/default.yaml" />
   
   </node>
+
+  <!-- pointcloud_to_laserscan -->
+  <include file="$(find pointcloud_to_laserscan)/launch/rbd_pointcloud_to_laserscan.launch">
+  </include>
 
 </launch>

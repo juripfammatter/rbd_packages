@@ -14,4 +14,8 @@
     <arg name="metadata" value="/home/unitree/catkin_ws/src/ouster-ros/config/metadata_512.json" />
   </include>
 
+  <!-- pointcloud_to_laserscan -->
+  <include file="$(find pointcloud_to_laserscan)/launch/rbd_pointcloud_to_laserscan.launch">
+  </include>
+  
 </launch>
