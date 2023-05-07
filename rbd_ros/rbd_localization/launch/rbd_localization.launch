@@ -1,6 +1,7 @@
 <launch>
   <arg name="enable_zed" default="false"/>
   <arg name="enable_loc_node" default="false"/>
+  <arg name="enable_SLAM" default = "false" />
 
   <!-- launch ROS Localization Node -->
   <group if="$(arg enable_loc_node)">
@@ -29,5 +30,11 @@
      -->
      
 	</node>
+
+  <group if="$(arg enable_SLAM)">
+    <include file="$(find slam_toolbox)/online_async.launch" >
+    	<remap from="/scan" to="ouster/scan"/>
+  	</include>
+  </group>
 
 </launch>

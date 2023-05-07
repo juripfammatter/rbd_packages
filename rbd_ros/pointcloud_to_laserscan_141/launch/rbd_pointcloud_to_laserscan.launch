@@ -7,7 +7,7 @@
     <!-- run pointcloud_to_laserscan node -->
     <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan">
 
-        <remap from="cloud_in" to="/rbd_lidar/output_PC2_scan"/>
+        <remap from="cloud_in" to="/output_PC2_scan"/>
         <remap from="scan" to="ouster/scan"/>
         <rosparam>
             target_frame: os_lidar # Leave disabled to output scan in pointcloud frame

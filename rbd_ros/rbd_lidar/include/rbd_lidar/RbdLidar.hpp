@@ -87,12 +87,18 @@ class RbdLidar
   ros::Subscriber subscriber_;
   ros::Subscriber subscriber_status;
 
+
   //! ROS client for collision avoidance service
   ros::ServiceClient collisionClient;
   std_srvs::SetBool collisionSrv;
+  
 
   //! loaded from default.yaml
   std::string subscriberTopic_;
+  std::string status_subscriber_topic;
+  std::string collision_service;
+  std::string flagged_pointcloud;
+  std::string scan_pointcloud;
   int critical_distance_back_mm_load;
   int critical_distance_left_mm_load;
   int critical_distance_front_mm_load;
