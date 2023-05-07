@@ -63,10 +63,17 @@ RbdLidar::RbdLidar(ros::NodeHandle& nodeHandle)
   phi4_deg = 360 - delta_deg;
   ROS_INFO("angles: phi1 %0.1f; phi2 %0.1f; phi3 %0.1f; phi4 %0.1f;", phi1_deg,phi2_deg,phi3_deg,phi4_deg);
 
-  // handle subscription, service, adversitement
+  // publishers
+  pub_PC2 = nodeHandle_.advertise<sensor_msgs::PointCloud2>("output_PC2_flagged", 1); 
+  pub_PC2_scan = nodeHandle_.advertise<sensor_msgs::PointCloud2>("output_PC2_scan", 1); 
+
+  // subscriptions
   subscriber_ = nodeHandle_.subscribe(subscriberTopic_, 1,&RbdLidar::topicCallback, this);
+  subscriber_status = nodeHandle_.subscribe("status_pub_topic", 1,&RbdLidar::statusTopicCallback, this);
+
+  // service
   collisionClient = nodeHandle_.serviceClient<std_srvs::SetBool>("/collision");
-  pub_PC2 = nodeHandle_.advertise<sensor_msgs::PointCloud2>("output_PC2_flagged", 1);  
+
 }
 
 RbdLidar::~RbdLidar()
@@ -76,8 +83,21 @@ RbdLidar::~RbdLidar()
 
 //////* Collision avoidance logic*//////
 std::vector<float> RbdLidar::findCollisions_getCritAzimuths(uint32_t* row){
-  std::vector<float> crit_Az;
+  // PointXYZI cloud for scan
+  pcl::PointXYZI newPoint;
+  if(row_pcl == 15){
+    for(uint32_t col = 0; col < n_cols; col++){
+      uint32_t index_pcl = row_pcl*n_cols + col;
 
+      newPoint.x = pcl_cloud->points[index_pcl].x;
+      newPoint.y = pcl_cloud->points[index_pcl].y;
+      newPoint.z = pcl_cloud->points[index_pcl].z;
+      pcl_cloud_scan->points.push_back(newPoint);
+    }
+  }
+
+  // handle critical zone
+  std::vector<float> crit_Az;
   for(uint32_t col = 0; col < n_cols; col++){
     // angles in space for current point
     float phi_deg = 360*((float(col))/float(n_cols-1));
@@ -180,6 +200,15 @@ pcl::PointCloud<pcl::PointXYZI>::Ptr RbdLidar::convertToPCL(const sensor_msgs::P
   return pcl_cloud;
 }
 
+void RbdLidar::statusTopicCallback(const std_msgs::String& message){
+  std::string execution_status = message.data;
+  if(execution_status == "running"){
+    rbd_is_running = true;
+  }
+  else{
+    rbd_is_running = false;
+  }
+}
 
 
 ///* Main callback of this node*///
@@ -194,6 +223,11 @@ void RbdLidar::topicCallback(const sensor_msgs::PointCloud2& inputPointCloud2)
   // convert PointCloud2& to pcl and generate outputPointCloud2
   pcl_cloud = convertToPCL(inputPointCloud2);
   sensor_msgs::PointCloud2::Ptr outputPointCloud2(new sensor_msgs::PointCloud2);
+
+  // PointCloud2& for SLAM scan
+  pcl_cloud_scan = convertToPCL(inputPointCloud2);
+  pcl_cloud_scan->clear();
+  sensor_msgs::PointCloud2::Ptr scanPointCloud2(new sensor_msgs::PointCloud2);
 
   //! get range for each point and store it in 2D array
   uint32_t ranges[n_rows][n_cols];
@@ -226,6 +260,12 @@ void RbdLidar::topicCallback(const sensor_msgs::PointCloud2& inputPointCloud2)
   // republish modified PointCloud2
   pcl::toROSMsg(*pcl_cloud, *outputPointCloud2);
   pub_PC2.publish(outputPointCloud2);
+
+  // publish PointCloud2 for scan
+  if(rbd_is_running){
+    pcl::toROSMsg(*pcl_cloud_scan, *scanPointCloud2);
+    pub_PC2_scan.publish(scanPointCloud2);
+  }
 
   // collision?
   if(nr_crit_azimuths < threshold_crit_azimuths){
