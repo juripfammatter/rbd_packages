@@ -63,11 +63,17 @@ RbdLidar::RbdLidar(ros::NodeHandle& nodeHandle)
   phi4_deg = 360 - delta_deg;
   ROS_INFO("angles: phi1 %0.1f; phi2 %0.1f; phi3 %0.1f; phi4 %0.1f;", phi1_deg,phi2_deg,phi3_deg,phi4_deg);
 
-  // handle subscription, service, adversitement
-  subscriber_ = nodeHandle_.subscribe(subscriberTopic_, 1,&RbdLidar::topicCallback, this);
-  collisionClient = nodeHandle_.serviceClient<std_srvs::SetBool>("/collision");
+  // publishers
   pub_PC2 = nodeHandle_.advertise<sensor_msgs::PointCloud2>("output_PC2_flagged", 1); 
   pub_PC2_scan = nodeHandle_.advertise<sensor_msgs::PointCloud2>("output_PC2_scan", 1); 
+
+  // subscriptions
+  subscriber_ = nodeHandle_.subscribe(subscriberTopic_, 1,&RbdLidar::topicCallback, this);
+  subscriber_status = nodeHandle_.subscribe("status_pub_topic", 1,&RbdLidar::statusTopicCallback, this);
+
+  // service
+  collisionClient = nodeHandle_.serviceClient<std_srvs::SetBool>("/collision");
+
 }
 
 RbdLidar::~RbdLidar()
@@ -194,6 +200,15 @@ pcl::PointCloud<pcl::PointXYZI>::Ptr RbdLidar::convertToPCL(const sensor_msgs::P
   return pcl_cloud;
 }
 
+void RbdLidar::statusTopicCallback(const std_msgs::String& message){
+  std::string execution_status = message.data;
+  if(execution_status == "running"){
+    rbd_is_running = true;
+  }
+  else{
+    rbd_is_running = false;
+  }
+}
 
 
 ///* Main callback of this node*///
@@ -247,8 +262,10 @@ void RbdLidar::topicCallback(const sensor_msgs::PointCloud2& inputPointCloud2)
   pub_PC2.publish(outputPointCloud2);
 
   // publish PointCloud2 for scan
-  pcl::toROSMsg(*pcl_cloud_scan, *scanPointCloud2);
-  pub_PC2_scan.publish(scanPointCloud2);
+  if(rbd_is_running){
+    pcl::toROSMsg(*pcl_cloud_scan, *scanPointCloud2);
+    pub_PC2_scan.publish(scanPointCloud2);
+  }
 
   // collision?
   if(nr_crit_azimuths < threshold_crit_azimuths){
