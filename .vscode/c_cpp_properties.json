@@ -6,6 +6,7 @@
                 "${workspaceFolder}/**",
                 "/opt/ros/melodic/include",
                 "/usr/include/eigen3",
+                "/usr/include/pcl-1.8",
                 "${workspaceFolder}/rbd_ros/rbd_pos_controller/include",
                 "${workspaceFolder}/rbd_ros/rbd_controller/include",
                 "${workspaceFolder}/rbd_ros/rbd_controller_template/include",

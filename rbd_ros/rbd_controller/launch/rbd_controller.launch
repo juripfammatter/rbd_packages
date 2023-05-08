@@ -24,6 +24,7 @@
   <include file="$(find rbd_localization)/launch/rbd_localization.launch">
     <arg name="enable_zed" value="true"/>
     <arg name="enable_loc_node" value="true" />
+    <arg name="enable_SLAM" value="true" />
   </include>
 
 

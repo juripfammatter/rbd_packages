@@ -83,7 +83,7 @@ void RbdNavigation::initChoreography(void){
     ros::Duration(1.0).sleep();
   }
 
-  // Fill array
+  /* Fill array (reverse order / pop_back) */
   wiggle_poses.push_back(zero_pose);
   wiggle_poses.push_back(wiggle_pose_2);
   wiggle_poses.push_back(wiggle_pose_1);
@@ -108,10 +108,9 @@ void RbdNavigation::initChoreography(void){
     ros::Duration(1.0).sleep();
   }
 
-  // Fill array
+  /* Fill array (reverse order / pop_back) */
   lie_down_poses.push_back(zero_pose);
   lie_down_poses.push_back(lie_down_pose);
-  // lie_down_poses.push_back(zero_pose);
 
 
   /* Walk */
@@ -123,17 +122,6 @@ void RbdNavigation::initChoreography(void){
 
   try{
     tf::Quaternion q;
-    // q.setRPY(0.0, 0.0, 0.46);
-    // tf_walk_1.setOrigin(tf::Vector3(0.5, 0.25, 0.0));
-    // tf_walk_1.setRotation(q);
-
-    // q.setRPY(0.0, 0.0, -1.57);
-    // tf_walk_2.setOrigin(tf::Vector3(0.5, -0.25, 0.0));
-    // tf_walk_2.setRotation(q);
-
-    // q.setRPY(0.0, 0.0, 3.14);
-    // tf_walk_3.setOrigin(tf::Vector3(-0.5, 0.0, 0.0));
-    // tf_walk_3.setRotation(q);
 
     q.setRPY(0.0, 0.0, 0.0);
     tf_walk_1.setOrigin(tf::Vector3(1.0, 0.0, 0.0));
@@ -161,13 +149,10 @@ void RbdNavigation::initChoreography(void){
     ros::Duration(1.0).sleep();
   }
 
-  // Fill array (reverse order)
+  /* Fill array (reverse order / pop_back) */
   walk_poses.push_back(zero_pose);
-  //walk_poses.push_back(walk_pose_4);
-  // walk_poses.push_back(walk_pose_3);
   walk_poses.push_back(walk_pose_2);
   walk_poses.push_back(walk_pose_1);
-  // walk_poses.push_back(zero_pose);
 
 
 
@@ -192,18 +177,14 @@ void RbdNavigation::initChoreography(void){
     ROS_WARN("%s", exception.what());
     ros::Duration(1.0).sleep();
   }
+
+  /* Fill array (reverse order / pop_back) */
   spin_poses.push_back(zero_pose);
   spin_poses.push_back(spin_pose_2);
   spin_poses.push_back(spin_pose_1);
-  // spin_poses.push_back(zero_pose);
 
 
 }
-
-// void RbdNavigation::topicCallback(const sensor_msgs::Temperature& message)
-// {
-//   // main Functions are implemented here
-// }
 
 
 
@@ -213,25 +194,25 @@ bool RbdNavigation::serviceCallback(rbd_msgs::GeneratePath::Request& request,
   if(request.command == "wiggle"){
     response.poses = wiggle_poses;
     response.nr_of_poses = 5;
-    response.namedPoses = {"bow down", "bow up", "bow down", "bow up", "zero position"};
+    response.namedPoses = {"zero position", "bow up", "bow down", "bow up", "bow down"}; // reverse order since they will be dequed with pop_back
     return true;
 
   } else if(request.command == "walk"){
     response.poses = walk_poses;
     response.nr_of_poses = 3;
-    response.namedPoses = {"walk forward", "walk backwards", "walk home"};
+    response.namedPoses = { "walk home", "walk backwards", "walk forward"};
     return true;
 
   } else if(request.command == "spin"){
     response.poses = spin_poses;
     response.nr_of_poses = 2;
-    response.namedPoses = {"rotate 180", "rotate back"};
+    response.namedPoses = {"rotate back", "rotate 180"};
     return true;
 
   }else if(request.command == "lie_down"){
     response.poses = lie_down_poses;
     response.nr_of_poses = 2;
-    response.namedPoses = {"lie down", "stand up"};
+    response.namedPoses = {"stand up", "lie down"};
     return true;
     
   }

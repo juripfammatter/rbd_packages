@@ -5,17 +5,7 @@
 
 namespace rbd_lidar {
 
-bool RbdLidar::readParameters()
-{
-  // get from .yaml file and save it into variables
-  if (!nodeHandle_.getParam("subscriber_topic", subscriberTopic_) ||   
-      !nodeHandle_.getParam("critical_dist_back", critical_distance_back_mm_load) ||
-      !nodeHandle_.getParam("critical_dist_left", critical_distance_left_mm_load) ||
-      !nodeHandle_.getParam("critical_dist_front", critical_distance_front_mm_load) ||
-      !nodeHandle_.getParam("critical_dist_right", critical_distance_right_mm_load) ||
-      !nodeHandle_.getParam("lim_rows_back", lim_rows_back_load)) return false;
-  return true;
-}
+
 
 RbdLidar::RbdLidar(ros::NodeHandle& nodeHandle)
     : nodeHandle_(nodeHandle)
@@ -64,20 +54,36 @@ RbdLidar::RbdLidar(ros::NodeHandle& nodeHandle)
   ROS_INFO("angles: phi1 %0.1f; phi2 %0.1f; phi3 %0.1f; phi4 %0.1f;", phi1_deg,phi2_deg,phi3_deg,phi4_deg);
 
   // publishers
-  pub_PC2 = nodeHandle_.advertise<sensor_msgs::PointCloud2>("output_PC2_flagged", 1); 
-  pub_PC2_scan = nodeHandle_.advertise<sensor_msgs::PointCloud2>("output_PC2_scan", 1); 
+  pub_PC2 = nodeHandle_.advertise<sensor_msgs::PointCloud2>(flagged_pointcloud, 1); 
+  pub_PC2_scan = nodeHandle_.advertise<sensor_msgs::PointCloud2>(scan_pointcloud, 1); 
 
   // subscriptions
   subscriber_ = nodeHandle_.subscribe(subscriberTopic_, 1,&RbdLidar::topicCallback, this);
-  subscriber_status = nodeHandle_.subscribe("status_pub_topic", 1,&RbdLidar::statusTopicCallback, this);
+  subscriber_status = nodeHandle_.subscribe(status_subscriber_topic, 1,&RbdLidar::statusTopicCallback, this);
 
   // service
-  collisionClient = nodeHandle_.serviceClient<std_srvs::SetBool>("/collision");
+  collisionClient = nodeHandle_.serviceClient<std_srvs::SetBool>(collision_service);
 
 }
 
 RbdLidar::~RbdLidar()
 {
+}
+
+bool RbdLidar::readParameters()
+{
+  // get from .yaml file and save it into variables
+  if (!nodeHandle_.getParam("subscriber_topic", subscriberTopic_) ||   
+      !nodeHandle_.getParam("status_subscriber_topic", status_subscriber_topic) ||   
+      !nodeHandle_.getParam("collision_service", collision_service) ||   
+      !nodeHandle_.getParam("flagged_pointcloud", flagged_pointcloud) ||   
+      !nodeHandle_.getParam("scan_pointcloud", scan_pointcloud) ||   
+      !nodeHandle_.getParam("critical_dist_back", critical_distance_back_mm_load) ||
+      !nodeHandle_.getParam("critical_dist_left", critical_distance_left_mm_load) ||
+      !nodeHandle_.getParam("critical_dist_front", critical_distance_front_mm_load) ||
+      !nodeHandle_.getParam("critical_dist_right", critical_distance_right_mm_load) ||
+      !nodeHandle_.getParam("lim_rows_back", lim_rows_back_load)) return false;
+  return true;
 }
 
 

@@ -1,6 +1,7 @@
 <launch>
   <arg name="enable_zed" default="false"/>
   <arg name="enable_loc_node" default="false"/>
+  <arg name="enable_SLAM" default = "false" />
 
   <!-- launch ROS Localization Node -->
   <group if="$(arg enable_loc_node)">
@@ -15,6 +16,7 @@
       <!-- <arg name="base_frame" value="zed_base_link" /> -->
       <arg name="cam_pos_x" value="0.18" /> 
       <arg name="cam_pos_z" value="0.04" />  
+      <arg name="base_frame" value="zed_base_link" />
     </include>
   </group>
 
@@ -29,5 +31,11 @@
      -->
      
 	</node>
+
+  <group if="$(arg enable_SLAM)">
+    <include file="$(find slam_toolbox)/online_async.launch" >
+    	<remap from="/scan" to="/scan"/>
+  	</include>
+  </group>
 
 </launch>
