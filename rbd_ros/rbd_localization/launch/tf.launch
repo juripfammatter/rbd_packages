@@ -2,11 +2,12 @@
     <!-- Static tf Transformations -->
 
     <!-- base_link -> os_sensor -->
-    <node pkg="tf" type="static_transform_publisher" name="base_link_2_os_sensor" args="0 0 0.1 0 0 0 1 base_link os_sensor 10 use_sim_time:=false" />
+    <node pkg="tf" type="static_transform_publisher" name="base_link_2_os_sensor" args="0 0 0.1 0 0 0 1 rbd_base_link os_sensor 10 use_sim_time:=false" />
 
     <!-- add static base_footprint for SLAM -->
-	<node pkg="tf" type="static_transform_publisher" name="footprint_transform" args="0 0 -0.41 0 0 0 base_link base_footprint 10 use_sim_time:=false" />
+	<node pkg="tf" type="static_transform_publisher" name="footprint_transform" args="0 0 -0.41 0 0 0 rbd_base_link base_footprint 10 use_sim_time:=false" />
 
     <!-- Launch the tf_echo node to display the robot's pose in the map frame -->
-	<node pkg="tf" type="tf_echo" name="tf_echo_node" args="/map /base_link" />
+	<node pkg="tf" type="tf_echo" name="tf_echo_node" args="/map /rbd_base_link" />
+    
 </launch>

@@ -16,7 +16,7 @@
             max_height: 0.1
 
             angle_min: -3.14159256 # -M_PI
-            angle_max: 3.14159256 # M_PI
+            angle_max: 3.14059256 # M_PI
             angle_increment: 0.00122718 # 2*M_PI/512.0
             scan_time: 0.1
             range_min: 0.25
