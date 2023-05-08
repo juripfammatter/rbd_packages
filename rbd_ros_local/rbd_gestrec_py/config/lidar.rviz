@@ -133,6 +133,8 @@ Visualization Manager:
           Value: false
         os_sensor:
           Value: true
+        rbd_base_link:
+          Value: true
         zed2_baro_link:
           Value: false
         zed2_base_link:
@@ -164,13 +166,6 @@ Visualization Manager:
         map:
           odom:
             base_link:
-              base_footprint:
-                {}
-              os_sensor:
-                os_imu:
-                  {}
-                os_lidar:
-                  {}
               zed2_base_link:
                 zed2_camera_center:
                   zed2_baro_link:
@@ -189,6 +184,14 @@ Visualization Manager:
                       {}
                     zed2_temp_right_link:
                       {}
+            rbd_base_link:
+              base_footprint:
+                {}
+              os_sensor:
+                os_imu:
+                  {}
+                os_lidar:
+                  {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -223,7 +226,7 @@ Visualization Manager:
   Global Options:
     Background Color: 19; 17; 23
     Default Light: true
-    Fixed Frame: base_link
+    Fixed Frame: map
     Frame Rate: 30
   Name: root
   Tools:
@@ -247,7 +250,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 19.512676239013672
+      Distance: 7.165517330169678
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -262,10 +265,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.8507963418960571
+      Pitch: 0.8007965087890625
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.011821632273495197
+      Yaw: 6.11000394821167
     Saved:
       - Class: rviz/Orbit
         Distance: 9.696643829345703
