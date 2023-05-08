@@ -16,6 +16,7 @@
       <!-- <arg name="base_frame" value="zed_base_link" /> -->
       <arg name="cam_pos_x" value="0.18" /> 
       <arg name="cam_pos_z" value="0.04" />  
+      <arg name="base_frame" value="zed_base_link" />
     </include>
   </group>
 
@@ -33,7 +34,7 @@
 
   <group if="$(arg enable_SLAM)">
     <include file="$(find slam_toolbox)/online_async.launch" >
-    	<remap from="/scan" to="ouster/scan"/>
+    	<remap from="/scan" to="/scan"/>
   	</include>
   </group>
 

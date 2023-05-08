@@ -137,13 +137,13 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& 
 {
   /******** Determine pose based on base_link to map transformation  ********/
   /* get current pose in respect to map frame*/
-	tf::StampedTransform tf_map;
+	// tf::StampedTransform tf_map;
 
-	getTransform(tf_map, "/base_link", "/map");         // the transformation from map to base_link descripes the robots pose in respect to the map frame
-  tf::Vector3 pos_map = tf_map.getOrigin();
-  tf::Quaternion rot_map = tf_map.getRotation();
-  ROS_INFO_STREAM_THROTTLE(0.2, "Position of tf: " << rot_map);
-  ROS_INFO_STREAM_THROTTLE(0.2, "Orientation of tf: " << rot_map);
+	// getTransform(tf_map, "/base_link", "/map");         // the transformation from map to base_link descripes the robots pose in respect to the map frame
+  // tf::Vector3 pos_map = tf_map.getOrigin();
+  // tf::Quaternion rot_map = tf_map.getRotation();
+  // ROS_INFO_STREAM_THROTTLE(0.2, "Position of tf: " << rot_map);
+  // ROS_INFO_STREAM_THROTTLE(0.2, "Orientation of tf: " << rot_map);
 
   // TODO: switch out pose for controller if map trandformation works
 
