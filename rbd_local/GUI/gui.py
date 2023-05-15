@@ -104,28 +104,28 @@ class App(customtkinter.CTk):
         self.queue_1 = customtkinter.CTkLabel(master=right_col, 
                                          justify=customtkinter.LEFT, 
                                          font=text_font, 
-                                         text = "move to (1.0, 0.0)",
+                                         text = "rotate 180°",
                                          width=500)
         
         self.queue_2 = customtkinter.CTkLabel(master=right_col, 
                                          justify=customtkinter.LEFT, 
                                          font=text_font, 
-                                         text = "move to (-1.0, 0.0)")
+                                         text = "rotate back")
         
         self.queue_3 = customtkinter.CTkLabel(master=right_col, 
                                          justify=customtkinter.LEFT, 
                                          font=text_font, 
-                                         text = "move to (0.0, 0.0)")
+                                         text = "move forwards")
         
         self.queue_4 = customtkinter.CTkLabel(master=right_col, 
                                          justify=customtkinter.LEFT, 
                                          font=text_font, 
-                                         text = "rotate to -180°")
+                                         text = "move backwards")
         
         self.queue_5 = customtkinter.CTkLabel(master=right_col, 
                                          justify=customtkinter.LEFT, 
                                          font=text_font, 
-                                         text = "rotate to 0°")
+                                         text = "move to origin")
         
         self.queue_6 = customtkinter.CTkLabel(master=right_col, 
                                          justify=customtkinter.LEFT, 
