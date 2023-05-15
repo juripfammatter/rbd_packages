@@ -1,0 +1,25 @@
+#!/usr/bin/expect -f
+
+## Create SSH connection
+spawn ssh unitree@192.168.123.12
+expect "unitree@192.168.123.12's password:"
+send "123\r"
+expect "$ "
+#interact
+
+# From here on, we are on the ssh server, therefore we have to use send instead of spawn
+# with \r to send the command
+
+## Superuser
+send "sudo su\r"
+expect "password for unitree:"
+send "123\r"
+
+## Start ROS
+expect "# "
+send "source robodog.sh\r"
+expect "# "
+send "roslaunch rbd_controller rbd_controller.launch\r"
+interact 
+
+
