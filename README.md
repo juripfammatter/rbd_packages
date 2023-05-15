@@ -34,8 +34,9 @@ This repository serves as the codebase for the Bachelor's Thesis of *Juri Pfamma
 2. Start the robot by pressing the power button once and then holding it until the LEDs begin to move.
 3. After a few seconds connect your local machine to the Unitree's WiFi hotspot.
 4. Unplug the USB-cable of the LiDAR for one second, then plug it back in.
-5. Check the connection to the robot with ping unitree@192.168.123.12.
-6. Start the whole system by running ./rbd_startup.sh in your home directory.
-7. Now the GUI, camera image and Rviz should open a window on your local machine.
+5. Check the connection to the robot with `ping unitree@192.168.123.12`.
+6. Place all files from `rbd_local/utilities` in your home directory.
+7. Start the whole system by running `./rbd_startup.sh` in your home directory.
+8. Now the GUI, camera image and Rviz should open a window on your local machine.
 
 More information about the project and a quick-start guide can be found [here](https://robodog.gitbook.io/robodog-documentation/).
