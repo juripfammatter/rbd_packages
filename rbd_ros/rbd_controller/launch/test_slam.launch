@@ -6,6 +6,10 @@
   <!-- tf Transformations -->
   <include file="$(find rbd_localization)/launch/tf.launch" />
 
+  <!-- add static base_footprint for SLAM -->
+	<node pkg="tf" type="static_transform_publisher" name="lidar_transform" args="0 0 0 0 0 0 odom rbd_base_link 10 use_sim_time:=false" />
+
+
   <!-- position controller  -->
   <!-- <node pkg="rbd_pos_controller" type="rbd_pos_controller" name="rbd_pos_controller" output="screen">
     <rosparam command="load" file="$(find rbd_pos_controller)/config/default.yaml" />
@@ -13,13 +17,11 @@
   
   <!-- launch localization with zed camera and EKF -->
   <include file="$(find rbd_localization)/launch/rbd_localization.launch">
-    <arg name="enable_zed" value="true"/>
+    <arg name="enable_zed" value="false"/>
     <arg name="enable_loc_node" value="true" />
     <arg name="enable_SLAM" value="true" />
   </include>
 
-  <!-- launch qre highlevelcontroller -->
-  <include file="$(find qre_ros)/launch/high_level_mode.launch" />
   
   <!-- Launch Lidar -->
   <include file="$(find rbd_lidar)/launch/rbd_lidar.launch" />

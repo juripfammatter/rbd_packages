@@ -21,4 +21,21 @@ This repository serves as the codebase for the Bachelor's Thesis of *Juri Pfamma
     * [`Rviz`](http://wiki.ros.org/rviz)
 <br><br>
 
+# Mounting Hardware
+1. Mount the camera mount to the ZED2 Stereo camera.
+2. Mount the camera with the camera mount to the robot.
+3. Insert two M3 screws diagonally into the LiDAR mount.
+4. Connect the power cable to the 19 V output and the LiDAR's USB-cable to the robot. 
+5. Mount the LiDAR mount onto the robot.
+6. Connect the ZED2 camera via its USB-cable.
+
+# Starting the Robot
+1. Check the battery status by pressing the power button located on the battery on the left-hand side once.
+2. Start the robot by pressing the power button once and then holding it until the LEDs begin to move.
+3. After a few seconds connect your local machine to the Unitree's WiFi hotspot.
+4. Unplug the USB-cable of the LiDAR for one second, then plug it back in.
+5. Check the connection to the robot with ping unitree@192.168.123.12.
+6. Start the whole system by running ./rbd_startup.sh in your home directory.
+7. Now the GUI, camera image and Rviz should open a window on your local machine.
+
 More information about the project and a quick-start guide can be found [here](https://robodog.gitbook.io/robodog-documentation/).

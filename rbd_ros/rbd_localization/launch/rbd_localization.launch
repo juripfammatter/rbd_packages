@@ -8,18 +8,13 @@
     <node pkg="rbd_localization" type="rbd_localization" name="rbd_localization" output="screen">
       <rosparam command="load" file="$(find rbd_localization)/config/default.yaml" />
     </node>
-   </group>
-
-  <!-- start ZED node if enable_zed = true -->
-  <group if="$(arg enable_zed)">
-    <include file="$(find zed_wrapper)/launch/zed2.launch">
-      <!-- <arg name="base_frame" value="zed_base_link" /> -->
-      <arg name="cam_pos_x" value="0.18" /> 
-      <arg name="cam_pos_z" value="0.04" />  
-      <arg name="base_frame" value="zed_base_link" />
-    </include>
   </group>
 
+  <group if="$(arg enable_SLAM)">
+    <include file="$(find slam_toolbox)/online_async.launch" >
+    	<remap from="/scan" to="/scan"/>
+  	</include>
+  </group>
 
   <!-- start EKF Localization -->
   <node name="ekf_localization" pkg="robot_localization" type="ekf_localization_node">
@@ -32,10 +27,16 @@
      
 	</node>
 
-  <group if="$(arg enable_SLAM)">
-    <include file="$(find slam_toolbox)/online_async.launch" >
-    	<remap from="/scan" to="/scan"/>
-  	</include>
+  <!-- start ZED node if enable_zed = true -->
+  <group if="$(arg enable_zed)">
+    <include file="$(find zed_wrapper)/launch/zed2.launch">
+      <!-- <arg name="base_frame" value="zed_base_link" /> -->
+      <arg name="cam_pos_x" value="0.18" /> 
+      <arg name="cam_pos_z" value="0.04" />  
+      <arg name="base_frame" value="base_link" />
+    </include>
   </group>
+
+  
 
 </launch>
