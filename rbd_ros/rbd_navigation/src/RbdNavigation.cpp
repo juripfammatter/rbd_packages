@@ -86,8 +86,7 @@ void RbdNavigation::initChoreography(void){
   /* Fill array (reverse order / pop_back) */
   wiggle_poses.push_back(zero_pose);
   wiggle_poses.push_back(wiggle_pose_2);
-  wiggle_poses.push_back(wiggle_pose_1);
-  wiggle_poses.push_back(wiggle_pose_2);
+  wiggle_poses.push_back(zero_pose);
   wiggle_poses.push_back(wiggle_pose_1);
   
 
@@ -124,11 +123,11 @@ void RbdNavigation::initChoreography(void){
     tf::Quaternion q;
 
     q.setRPY(0.0, 0.0, 0.0);
-    tf_walk_1.setOrigin(tf::Vector3(1.0, 0.0, 0.0));
+    tf_walk_1.setOrigin(tf::Vector3(0.6, 0.0, 0.0));
     tf_walk_1.setRotation(q);
 
     q.setRPY(0.0, 0.0, 3.14);
-    tf_walk_2.setOrigin(tf::Vector3(-1.0, 0.0, 0.0));
+    tf_walk_2.setOrigin(tf::Vector3(-0.6, 0.0, 0.0));
     tf_walk_2.setRotation(q);
 
     q.setRPY(0.0, 0.0, 0.0);
@@ -193,8 +192,8 @@ bool RbdNavigation::serviceCallback(rbd_msgs::GeneratePath::Request& request,
 {
   if(request.command == "wiggle"){
     response.poses = wiggle_poses;
-    response.nr_of_poses = 5;
-    response.namedPoses = {"zero position", "bow up", "bow down", "bow up", "bow down"}; // reverse order since they will be dequed with pop_back
+    response.nr_of_poses = 4;
+    response.namedPoses = {"zero position", "bow up", "zero position", "bow down"}; // reverse order since they will be dequed with pop_back
     return true;
 
   } else if(request.command == "walk"){
