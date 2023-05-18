@@ -74,7 +74,7 @@ class App(customtkinter.CTk):
         right_col = customtkinter.CTkFrame(master=right_col_grid, 
                                             fg_color="#303040")
         
-        right_col.grid(row = 4, column = 1, pady=25, padx=20)
+        right_col.grid(row = 4, column = 1, pady=30, padx=20)
 
         # Buttons
         self.em_button = customtkinter.CTkButton(master=left_col, 
@@ -105,11 +105,11 @@ class App(customtkinter.CTk):
                                             justify=customtkinter.CENTER, 
                                             font=text_font, 
                                             text_color= "#FFFFFF",
-                                            fg_color="#00BC69",
+                                            fg_color="#FF0000",
                                             padx = 45,
                                             pady = 9,
                                             corner_radius= 5,
-                                            text = "running",
+                                            text = "em_stop",
                                             width=600)
         
         #  Queue
@@ -206,7 +206,7 @@ class App(customtkinter.CTk):
             self.em_button.configure(text = "Enable")
 
         elif (self.status == "running"):
-            self.status_text.configure(text = self.status, fg_color = "#00BC69")
+            self.status_text.configure(text = self.status, fg_color = "#008F3C")
             self.em_button.configure(text = "Enable")
 
 
