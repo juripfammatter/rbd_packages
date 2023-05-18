@@ -8,7 +8,7 @@
     <!-- Launch ouster record -->
     <include file="$(find ouster_ros)/launch/record.launch">
         <arg name="metadata" value="$(find ouster_ros)/config/$(arg metadata_file)"/>
-        <arg name="bag_file" value="/home/juri/ROSWorkspace/BA/bags/$(arg bag_name)"/>
+        <arg name="bag_file" value="/home/unitree/catkin_ws/bags/$(arg bag_name)"/>
         <arg name="sensor_hostname" value="os-122222003163.local" />
     </include>
 

@@ -58,11 +58,11 @@ void RbdNavigation::initChoreography(void){
 
   try{
     tf::Quaternion q;
-    q.setRPY(0.0, 1.0, 0.0);
+    q.setRPY(-0.3, 0.0, 0.0);
     tf_wiggle_1.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
     tf_wiggle_1.setRotation(q);
 
-    q.setRPY(0.0, -1.0, 0.0);
+    q.setRPY(0.3, 0.0, 0.0);
     tf_wiggle_2.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
     tf_wiggle_2.setRotation(q);
 
@@ -149,7 +149,7 @@ void RbdNavigation::initChoreography(void){
   }
 
   /* Fill array (reverse order / pop_back) */
-  walk_poses.push_back(zero_pose);
+  // walk_poses.push_back(zero_pose);
   walk_poses.push_back(walk_pose_2);
   walk_poses.push_back(walk_pose_1);
 
@@ -178,7 +178,7 @@ void RbdNavigation::initChoreography(void){
   }
 
   /* Fill array (reverse order / pop_back) */
-  spin_poses.push_back(zero_pose);
+  // spin_poses.push_back(zero_pose);
   spin_poses.push_back(spin_pose_2);
   spin_poses.push_back(spin_pose_1);
 
@@ -198,8 +198,8 @@ bool RbdNavigation::serviceCallback(rbd_msgs::GeneratePath::Request& request,
 
   } else if(request.command == "walk"){
     response.poses = walk_poses;
-    response.nr_of_poses = 3;
-    response.namedPoses = { "walk home", "walk backwards", "walk forward"};
+    response.nr_of_poses = 2;
+    response.namedPoses = { "walk home", "walk forward"};
     return true;
 
   } else if(request.command == "spin"){
