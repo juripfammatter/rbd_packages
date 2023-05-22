@@ -1,5 +1,6 @@
 subscriber_topic: /zed2/zed_node/pose
 cmd_vel_publisher_topic: /cmd_vel
+slam_status_pub_topic: /slam_status
 status_publisher_topic: /rbd_status
 body_pose_service: /set_body_pose
 emergency_stop_service: /emergency_stop

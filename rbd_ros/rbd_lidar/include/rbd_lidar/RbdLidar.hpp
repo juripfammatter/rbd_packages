@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <std_srvs/SetBool.h>
 #include <std_msgs/String.h>
+#include <std_msgs/Bool.h>
 
 // PCL
 #include <pcl_conversions/pcl_conversions.h>
@@ -56,7 +57,7 @@ class RbdLidar
    * @param message the received message.
    */
   void topicCallback(const sensor_msgs::PointCloud2& message);
-  void statusTopicCallback(const std_msgs::String& message);
+  void statusTopicCallback(const std_msgs::Bool& message);
 
   //! Private functions
   
@@ -95,7 +96,7 @@ class RbdLidar
 
   //! loaded from default.yaml
   std::string subscriberTopic_;
-  std::string status_subscriber_topic;
+  std::string slam_status_subscriber_topic;
   std::string collision_service;
   std::string flagged_pointcloud;
   std::string scan_pointcloud;
