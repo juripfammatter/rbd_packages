@@ -138,26 +138,8 @@ void RbdController::statusCallback(const std_msgs::String& message)
             ROS_ERROR("Failed to call service set_position");
           }
 
-          /* Change mode for a short amount of time to reset foot position*/
+          /* update named_poses and change state */
           if (poses.empty()){
-            /* set mode to walk */
-            // mode_srv.request.mode = 2;
-            // if (modeClient_.call(mode_srv)){
-            //   ROS_INFO_STREAM("Mode set to walk Succesfully");
-            // } else {
-            //   ROS_ERROR("Failed to call service set_mode with mode 2");
-            // }
-
-            // ros::WallDuration(0.5).sleep(); 
-
-            // /* set mode back to stand */
-            // mode_srv.request.mode = 1;
-            // if (modeClient_.call(mode_srv)){
-            //   ROS_INFO_STREAM("Mode set to stand succesfully");
-            //   control_state = WAITING_FOR_GESTURE;
-            // } else {
-            //   ROS_ERROR("Failed to call service set_mode with mode 1");
-            // }
             named_poses.namedPoses = named_poses_array;
             namedPosePublisher_.publish(named_poses);
             control_state = WAITING_FOR_GESTURE;
