@@ -181,6 +181,9 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& 
 
   /* Reset Velocity */
   vel_message = zero_twist;
+  // enable SLAM
+  slam_status_message.data = true;
+  slamStatusPublisher_.publish(slam_status_message);
 
   
   /*************************** State machine ****************************/
@@ -230,10 +233,6 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& 
 
           case PRE_ROTATION:
             if(fabs(gamma) >= 0.05){
-              // enable SLAM
-              slam_status_message.data = true;
-              slamStatusPublisher_.publish(slam_status_message);
-
               vel_message.angular.z = saturate(gamma*kp_angular, -0.2, 0.2);
               vel_message.linear.y = saturate(-5.0*vel_message.angular.z*static_rho*kp_linear_y*sin(static_gamma), -0.3, 0.3);
             } else {
@@ -244,16 +243,9 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& 
 
           case LIN_MOVEMENT:
             if(rho >= 0.05){
-              // enable SLAM
-              slam_status_message.data = true;
-              slamStatusPublisher_.publish(slam_status_message);
-
               // control loop
               vel_message.linear.x = saturate(rho*kp_linear_x*cos(gamma), -0.3, 0.3);
               vel_message.linear.y = saturate(rho*kp_linear_y*sin(gamma), -0.3, 0.3); 
-
-              ROS_INFO_STREAM_THROTTLE(0.5," linear velocity: "<< saturate(rho*kp_linear_x*cos(gamma), -0.3, 0.3));
-              ROS_INFO_STREAM_THROTTLE(0.5," angular velocity: "<< saturate(gamma*kp_linear_y*sin(gamma), -0.3, 0.3));
             } else {
               pos_control_state = POST_ROTATION;
             }
@@ -262,10 +254,6 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& 
 
           case POST_ROTATION:
             if(fabs(delta) >= 0.1){
-              // enable SLAM
-              slam_status_message.data = true;
-              slamStatusPublisher_.publish(slam_status_message);
-
               vel_message.angular.z = saturate(delta*kp_angular, -0.3, 0.3);
               vel_message.linear.y = 0.02;
             } else {
@@ -276,10 +264,16 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& 
 
 
           case BODY_POSE:
-            // disable SLAM
-            slam_status_message.data = false;
-            slamStatusPublisher_.publish(slam_status_message);
 
+            // prevent SLAM with angles != 0
+            if((goal_roll == 0) && (goal_pitch == 0)){
+              // enable SLAM
+              slam_status_message.data = true;
+            } else {
+              // disable SLAM
+              slam_status_message.data = false;
+            }
+            slamStatusPublisher_.publish(slam_status_message);
 
             /* create request (normed to [-1,1]) */
             pose_srv.request.request.roll =  goal_roll*k_roll;
