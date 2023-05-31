@@ -1,0 +1,7 @@
+#request
+geometry_msgs/Pose goal
+int32 zone
+---
+#response
+string message
+bool success
