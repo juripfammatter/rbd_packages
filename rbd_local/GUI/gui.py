@@ -74,8 +74,20 @@ class App(customtkinter.CTk):
         right_col = customtkinter.CTkFrame(master=right_col_grid, 
                                             fg_color="#303040")
         
-        right_col.grid(row = 4, column = 1, pady=42, padx=10)
+        right_col.grid(row = 4, column = 1, pady=30, padx=20)
 
+        # Buttons
+        self.em_button = customtkinter.CTkButton(master=left_col, 
+                                           command=self.em_callback, 
+                                           font=text_font,
+                                           border_spacing=20,
+                                           hover_color="#7070D0",
+                                           fg_color="#303040",
+                                           border_color="#7070D0",
+                                           border_width=5,
+                                           text= "Disable",
+                                           width=600)
+        
 
         # Labels
         label_1 = customtkinter.CTkLabel(master=left_col, 
@@ -86,7 +98,7 @@ class App(customtkinter.CTk):
 
         label_2 = customtkinter.CTkLabel(master=left_col, 
                                          justify=customtkinter.CENTER, 
-                                         font=text_font, 
+                                         font=text_font,
                                          text = "Current State:")
         
         self.status_text = customtkinter.CTkLabel(master=left_col, 
@@ -95,7 +107,7 @@ class App(customtkinter.CTk):
                                             text_color= "#FFFFFF",
                                             fg_color="#FF0000",
                                             padx = 45,
-                                            pady = 13,
+                                            pady = 9,
                                             corner_radius= 5,
                                             text = "em_stop",
                                             width=600)
@@ -105,43 +117,35 @@ class App(customtkinter.CTk):
                                          justify=customtkinter.LEFT, 
                                          font=text_font, 
                                          text = "rotate 180°",
+                                         pady = 0,
                                          width=500)
         
         self.queue_2 = customtkinter.CTkLabel(master=right_col, 
                                          justify=customtkinter.LEFT, 
                                          font=text_font, 
+                                         pady = 0,
                                          text = "rotate back")
         
         self.queue_3 = customtkinter.CTkLabel(master=right_col, 
                                          justify=customtkinter.LEFT, 
                                          font=text_font, 
+                                         pady = 0,
                                          text = "move forwards")
         
         self.queue_4 = customtkinter.CTkLabel(master=right_col, 
                                          justify=customtkinter.LEFT, 
                                          font=text_font, 
+                                         pady = 0,
                                          text = "move backwards")
         
         self.queue_5 = customtkinter.CTkLabel(master=right_col, 
                                          justify=customtkinter.LEFT, 
                                          font=text_font, 
+                                         pady = 0,
                                          text = "move to origin")
         
-        self.queue_6 = customtkinter.CTkLabel(master=right_col, 
-                                         justify=customtkinter.LEFT, 
-                                         font=text_font, 
-                                         text = "empty:")
 
 
-        # Buttons
-        self.em_button = customtkinter.CTkButton(master=left_col, 
-                                           command=self.em_callback, 
-                                           font=text_font,
-                                           border_spacing=30,
-                                           hover_color="#505080",
-                                           fg_color="#7070D0",
-                                           text= "Disable",
-                                           width=600)
 
 
         label_1.grid(row=0, column=0, padx=20, pady = 50)
@@ -155,19 +159,15 @@ class App(customtkinter.CTk):
         self.queue_4.grid(row=1, column=0, padx=20, pady = 40)
         self.queue_5.grid(row=0, column=0, padx=20, pady = 40)
         
-        
-        
-        
-        
-
 
     # deconstructor
     def __del__(self):
         print("Terminating rosbridge connection")
         self.client.terminate()
 
+
     def init_rosbridge(self):
-        """ FYI: run these first in terminals
+        """ FYI: run these first in terminals (also included in gestrec launch file)
         roslaunch rosbridge_server rosbridge_websocket.launch
         rosrun tf2_web_republisher tf2_web_republisher
         """
@@ -196,8 +196,17 @@ class App(customtkinter.CTk):
         if(self.status == "em_stop"):
             self.status_text.configure(text = self.status, fg_color = "#FF0000")
             self.em_button.configure(text = "Disable")
-        else:
-            self.status_text.configure(text = self.status, fg_color = "#505080")
+
+        elif (self.status == "collision"):
+            self.status_text.configure(text = self.status, fg_color = "#FF7B00")
+            self.em_button.configure(text = "Enable")
+
+        elif (self.status == "idle"):
+            self.status_text.configure(text = self.status, fg_color = "#1849FF")
+            self.em_button.configure(text = "Enable")
+
+        elif (self.status == "running"):
+            self.status_text.configure(text = self.status, fg_color = "#008F3C")
             self.em_button.configure(text = "Enable")
 
 

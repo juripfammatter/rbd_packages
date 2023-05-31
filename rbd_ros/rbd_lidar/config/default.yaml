@@ -1,5 +1,5 @@
 subscriber_topic: "/ouster/points"
-status_subscriber_topic: "/rbd_status"
+slam_status_subscriber_topic: "/slam_status"
 collision_service: "/collision"
 flagged_pointcloud: "/output_PC2_flagged"
 scan_pointcloud: "/output_PC2_scan"

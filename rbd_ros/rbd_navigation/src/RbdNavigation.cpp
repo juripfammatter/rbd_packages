@@ -15,9 +15,6 @@ RbdNavigation::RbdNavigation(ros::NodeHandle& nodeHandle)
 
   initChoreography();
 
-  // // Create subscribers
-  // subscriber_ = nodeHandle_.subscribe(subscriberTopic_, 1,&RbdNavigation::topicCallback, this);
-
   // Create service servers/clients
   serviceServer_ = nodeHandle_.advertiseService(generate_path_service,&RbdNavigation::serviceCallback, this);
 
@@ -54,30 +51,20 @@ void RbdNavigation::toMsgPose(const tf::Pose& tf_pose, geometry_msgs::Pose& msg_
 void RbdNavigation::initChoreography(void){
   
   /*Wiggle */
-  tf::Pose tf_wiggle_1, tf_wiggle_2, tf_wiggle_3, tf_wiggle_4;
+  tf::Pose tf_wiggle_1, tf_wiggle_2;
 
   try{
     tf::Quaternion q;
-    q.setRPY(0.0, 1.0, 0.0);
+    q.setRPY(-0.3, 0.0, 0.0);
     tf_wiggle_1.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
     tf_wiggle_1.setRotation(q);
 
-    q.setRPY(0.0, -1.0, 0.0);
+    q.setRPY(0.3, 0.0, 0.0);
     tf_wiggle_2.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
     tf_wiggle_2.setRotation(q);
 
-    q.setRPY(0.5, 0.0, 0.0);
-    tf_wiggle_3.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
-    tf_wiggle_3.setRotation(q);
-
-    q.setRPY(0.5, 0.0, 0.0);
-    tf_wiggle_4.setOrigin(tf::Vector3(0.0, 0.0, 0.0));
-    tf_wiggle_4.setRotation(q);
-
     toMsgPose(tf_wiggle_1, wiggle_pose_1);
     toMsgPose(tf_wiggle_2, wiggle_pose_2);
-    toMsgPose(tf_wiggle_3, wiggle_pose_3);
-    toMsgPose(tf_wiggle_4, wiggle_pose_4);
   } catch (tf::TransformException &exception){
     ROS_WARN("%s", exception.what());
     ros::Duration(1.0).sleep();
@@ -86,8 +73,7 @@ void RbdNavigation::initChoreography(void){
   /* Fill array (reverse order / pop_back) */
   wiggle_poses.push_back(zero_pose);
   wiggle_poses.push_back(wiggle_pose_2);
-  wiggle_poses.push_back(wiggle_pose_1);
-  wiggle_poses.push_back(wiggle_pose_2);
+  wiggle_poses.push_back(zero_pose);
   wiggle_poses.push_back(wiggle_pose_1);
   
 
@@ -124,11 +110,11 @@ void RbdNavigation::initChoreography(void){
     tf::Quaternion q;
 
     q.setRPY(0.0, 0.0, 0.0);
-    tf_walk_1.setOrigin(tf::Vector3(1.0, 0.0, 0.0));
+    tf_walk_1.setOrigin(tf::Vector3(0.6, 0.0, 0.0));
     tf_walk_1.setRotation(q);
 
     q.setRPY(0.0, 0.0, 3.14);
-    tf_walk_2.setOrigin(tf::Vector3(-1.0, 0.0, 0.0));
+    tf_walk_2.setOrigin(tf::Vector3(-0.6, 0.0, 0.0));
     tf_walk_2.setRotation(q);
 
     q.setRPY(0.0, 0.0, 0.0);
@@ -150,7 +136,6 @@ void RbdNavigation::initChoreography(void){
   }
 
   /* Fill array (reverse order / pop_back) */
-  walk_poses.push_back(zero_pose);
   walk_poses.push_back(walk_pose_2);
   walk_poses.push_back(walk_pose_1);
 
@@ -179,7 +164,6 @@ void RbdNavigation::initChoreography(void){
   }
 
   /* Fill array (reverse order / pop_back) */
-  spin_poses.push_back(zero_pose);
   spin_poses.push_back(spin_pose_2);
   spin_poses.push_back(spin_pose_1);
 
@@ -193,14 +177,14 @@ bool RbdNavigation::serviceCallback(rbd_msgs::GeneratePath::Request& request,
 {
   if(request.command == "wiggle"){
     response.poses = wiggle_poses;
-    response.nr_of_poses = 5;
-    response.namedPoses = {"zero position", "bow up", "bow down", "bow up", "bow down"}; // reverse order since they will be dequed with pop_back
+    response.nr_of_poses = 4;
+    response.namedPoses = {"zero position", "bow up", "zero position", "bow down"}; // reverse order since they will be dequed with pop_back
     return true;
 
   } else if(request.command == "walk"){
     response.poses = walk_poses;
-    response.nr_of_poses = 3;
-    response.namedPoses = { "walk home", "walk backwards", "walk forward"};
+    response.nr_of_poses = 2;
+    response.namedPoses = { "walk home", "walk forward"};
     return true;
 
   } else if(request.command == "spin"){

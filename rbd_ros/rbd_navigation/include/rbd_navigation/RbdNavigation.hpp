@@ -35,20 +35,19 @@ class RbdNavigation
    */
   bool readParameters();
 
-  /// @brief converts tf pose to geometry_msgs pose (pass by reference!)
-  /// @param tf_pose pose to be converted
-  /// @param msg_pose resulting pose in geometry_msgs type
+  /*!
+   * @brief converts tf pose to geometry_msgs pose (pass by reference!)
+   * @param tf_pose pose to be converted
+   * @param msg_pose resulting pose in geometry_msgs type
+   */
   void toMsgPose(const tf::Pose& tf_pose, geometry_msgs::Pose& msg_pose);
 
-  /// @brief initializes the _poses array (currently only wiggle_poses)
-  /// @param  
+  /*!
+   * @brief initializes the _poses array (currently only wiggle_poses)
+   * @param  
+   */
   void initChoreography(void);
 
-  /*!
-   * ROS topic callback method.
-   * @param message the received message.
-   */
-  // void topicCallback(const sensor_msgs::Temperature& message);
 
   /*!
    * ROS service server callback.
@@ -84,13 +83,9 @@ class RbdNavigation
   geometry_msgs::Pose zero_pose;
   geometry_msgs::Pose wiggle_pose_1; 
   geometry_msgs::Pose wiggle_pose_2;
-  geometry_msgs::Pose wiggle_pose_3;
-  geometry_msgs::Pose wiggle_pose_4;
 
   geometry_msgs::Pose lie_down_pose; 
 
-  // geometry_msgs::Pose sit_pose;
-  // geometry_msgs::Pose sit_rot_pose;
 
   geometry_msgs::Pose walk_pose_1;
   geometry_msgs::Pose walk_pose_2;

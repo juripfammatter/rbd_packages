@@ -59,7 +59,7 @@ RbdLidar::RbdLidar(ros::NodeHandle& nodeHandle)
 
   // subscriptions
   subscriber_ = nodeHandle_.subscribe(subscriberTopic_, 1,&RbdLidar::topicCallback, this);
-  subscriber_status = nodeHandle_.subscribe(status_subscriber_topic, 1,&RbdLidar::statusTopicCallback, this);
+  subscriber_status = nodeHandle_.subscribe(slam_status_subscriber_topic, 1,&RbdLidar::statusTopicCallback, this);
 
   // service
   collisionClient = nodeHandle_.serviceClient<std_srvs::SetBool>(collision_service);
@@ -74,7 +74,7 @@ bool RbdLidar::readParameters()
 {
   // get from .yaml file and save it into variables
   if (!nodeHandle_.getParam("subscriber_topic", subscriberTopic_) ||   
-      !nodeHandle_.getParam("status_subscriber_topic", status_subscriber_topic) ||   
+      !nodeHandle_.getParam("slam_status_subscriber_topic", slam_status_subscriber_topic) ||   
       !nodeHandle_.getParam("collision_service", collision_service) ||   
       !nodeHandle_.getParam("flagged_pointcloud", flagged_pointcloud) ||   
       !nodeHandle_.getParam("scan_pointcloud", scan_pointcloud) ||   
@@ -206,14 +206,8 @@ pcl::PointCloud<pcl::PointXYZI>::Ptr RbdLidar::convertToPCL(const sensor_msgs::P
   return pcl_cloud;
 }
 
-void RbdLidar::statusTopicCallback(const std_msgs::String& message){
-  std::string execution_status = message.data;
-  if(execution_status == "running"){
-    rbd_is_running = true;
-  }
-  else{
-    rbd_is_running = false;
-  }
+void RbdLidar::statusTopicCallback(const std_msgs::Bool& message){
+  rbd_is_running = message.data;
 }
 
 

@@ -1,5 +1,6 @@
 # rbd_localzation
-Node currently not in use!.
+Node currently not in use!.<br>
+To run node pass parameter `enable_loc_node:=true` ro `rbd_localization.launch`.<br>
 Implementation of discrete integration and filtering of IMU sensor data.
 
 ## Launch Files

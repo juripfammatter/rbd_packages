@@ -19,6 +19,7 @@ RbdPosController::RbdPosController(ros::NodeHandle& nodeHandle)
   // Create publishers
   cmdVelPublisher_ = nodeHandle_.advertise<geometry_msgs::Twist>(cmd_vel_pub_topic,1);
   statusPublisher_ = nodeHandle_.advertise<std_msgs::String>(status_pub_topic,1); 
+  slamStatusPublisher_ = nodeHandle_.advertise<std_msgs::Bool>(slam_status_pub_topic,1);
 
   // Create service servers/clients
   emServiceServer_ = nodeHandle_.advertiseService(emergency_stop_service,&RbdPosController::emStopCallback, this);
@@ -42,6 +43,7 @@ RbdPosController::~RbdPosController()
 bool RbdPosController::readParameters()
 {
   if (!nodeHandle_.getParam("subscriber_topic", sub_topic) || 
+      !nodeHandle_.getParam("slam_status_pub_topic", slam_status_pub_topic)|| 
       !nodeHandle_.getParam("cmd_vel_publisher_topic", cmd_vel_pub_topic) ||
       !nodeHandle_.getParam("status_publisher_topic", status_pub_topic) ||
       !nodeHandle_.getParam("body_pose_service", body_pose_service)  ||
@@ -136,6 +138,7 @@ void RbdPosController::getTransform(tf::StampedTransform &transform, const std::
 void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& pose)
 {
   /******** Determine pose based on base_link to map transformation  ********/
+  /* The pose of the robot can also be derived from the coordinate frame transformations */
   /* get current pose in respect to map frame*/
 	// tf::StampedTransform tf_map;
 
@@ -145,7 +148,7 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& 
   // ROS_INFO_STREAM_THROTTLE(0.2, "Position of tf: " << rot_map);
   // ROS_INFO_STREAM_THROTTLE(0.2, "Orientation of tf: " << rot_map);
 
-  // TODO: switch out pose for controller if map trandformation works
+
 
   /************* Determine pose based on pose from camera *****************/
   /* Get yaw angle of actual pose */
@@ -175,10 +178,12 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& 
   double static_gamma = static_alpha-pose_rpy[2];       // angle for pose correction during rotation
   limitToPi(static_gamma);
 
+
   /* Reset Velocity */
   vel_message = zero_twist;
-
-  //ROS_INFO_STREAM_THROTTLE(0.5,"e_x:" << e_x << "e_y" << e_y << "rho:" << rho << "\nalpha:"<<alpha<<" gamma:"<<gamma<<" delta:"<<delta);
+  // enable SLAM
+  slam_status_message.data = true;
+  slamStatusPublisher_.publish(slam_status_message);
 
   
   /*************************** State machine ****************************/
@@ -228,13 +233,8 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& 
 
           case PRE_ROTATION:
             if(fabs(gamma) >= 0.05){
-              
-
               vel_message.angular.z = saturate(gamma*kp_angular, -0.2, 0.2);
-              // vel_message.linear.x = saturate(1.0 *static_rho*kp_linear_x*cos(static_gamma), -0.3, 0.3);
               vel_message.linear.y = saturate(-5.0*vel_message.angular.z*static_rho*kp_linear_y*sin(static_gamma), -0.3, 0.3);
-              //vel_message.linear.y = 0.02;
-              //ROS_INFO_STREAM_THROTTLE(0.5," angular velocity: "<< saturate(gamma*kp_angular, -0.3, 0.3));
             } else {
               pos_control_state = LIN_MOVEMENT;
             }
@@ -245,13 +245,9 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& 
             if(rho >= 0.05){
               // control loop
               vel_message.linear.x = saturate(rho*kp_linear_x*cos(gamma), -0.3, 0.3);
-              vel_message.linear.y = saturate(rho*kp_linear_y*sin(gamma), -0.3, 0.3);   //+0.075
-              //vel_message.angular.z = 0.001;                                                       //compensation
-              ROS_INFO_STREAM_THROTTLE(0.5," linear velocity: "<< saturate(rho*kp_linear_x*cos(gamma), -0.3, 0.3));
-              ROS_INFO_STREAM_THROTTLE(0.5," angular velocity: "<< saturate(gamma*kp_linear_y*sin(gamma), -0.3, 0.3));
+              vel_message.linear.y = saturate(rho*kp_linear_y*sin(gamma), -0.3, 0.3); 
             } else {
               pos_control_state = POST_ROTATION;
-              //pos_control_state = BODY_POSE;
             }
             break;
 
@@ -268,12 +264,21 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& 
 
 
           case BODY_POSE:
+
+            // prevent SLAM with angles != 0
+            if((goal_roll == 0) && (goal_pitch == 0)){
+              // enable SLAM
+              slam_status_message.data = true;
+            } else {
+              // disable SLAM
+              slam_status_message.data = false;
+            }
+            slamStatusPublisher_.publish(slam_status_message);
+
             /* create request (normed to [-1,1]) */
             pose_srv.request.request.roll =  goal_roll*k_roll;
             pose_srv.request.request.pitch =  goal_pitch*k_pitch;
-            //pose_srv.request.request.yaw =  goal_yaw*k_yaw;
             pose_srv.request.request.body_height = goal_position.z;
-            //ROS_INFO_STREAM("Creating request with RPY:"<<pose_srv.request.request.roll<<";"<<pose_srv.request.request.pitch<<";"<<pose_srv.request.request.yaw);
 
             if (!poseClient_.call(pose_srv))
             {
@@ -283,6 +288,7 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& 
             }
 
             ros::WallDuration(1.0).sleep();
+
             // set status to idle
             status_message.data = "idle";
             pos_control_state = WAIT_FOR_POSE;
@@ -290,6 +296,7 @@ void RbdPosController::actualPositionCallback(const geometry_msgs::PoseStamped& 
 
         }
         cmdVelPublisher_.publish(vel_message);
+        
 
   }
 

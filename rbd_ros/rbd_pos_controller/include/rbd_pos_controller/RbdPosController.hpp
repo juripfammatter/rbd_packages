@@ -4,6 +4,7 @@
 #include <ros/ros.h>
 #include <ros/console.h>
 #include <std_msgs/String.h>
+#include <std_msgs/Bool.h>
 #include <geometry_msgs/Twist.h>
 #include <std_srvs/SetBool.h>
 #include <rbd_msgs/SetPosition.h>
@@ -119,6 +120,7 @@ class RbdPosController
   ros::Subscriber subscriber_;
   ros::Publisher cmdVelPublisher_;
   ros::Publisher statusPublisher_;
+  ros::Publisher slamStatusPublisher_;
   ros::ServiceServer emServiceServer_;
   ros::ServiceServer colServiceServer_;
   ros::ServiceServer posServiceServer_;
@@ -129,6 +131,7 @@ class RbdPosController
   std::string sub_topic;
   std::string cmd_vel_pub_topic;
   std::string status_pub_topic;
+  std::string slam_status_pub_topic;
   std::string body_pose_service;
   std::string emergency_stop_service;
   std::string collision_service;
@@ -136,6 +139,7 @@ class RbdPosController
 
   /* Topic and Service message declarations */
   std_msgs::String status_message;
+  std_msgs::Bool slam_status_message;
   geometry_msgs::Twist stop_message;
   geometry_msgs::Twist vel_message;
   geometry_msgs::Twist zero_twist;
